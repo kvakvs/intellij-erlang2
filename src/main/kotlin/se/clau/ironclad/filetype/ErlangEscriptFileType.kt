@@ -7,7 +7,7 @@ import javax.swing.Icon
 
 object ErlangEscriptFileType : LanguageFileType(ErlangLanguage) {
 
-    override fun getName(): String = "Erlang Escript"
+    override fun getName(): String = "Erlang Escript" // must match <filetype name=""> in plugin.xml
 
     override fun getIcon(): Icon = ErlangIcons.ESCRIPT_FILE
 
@@ -15,5 +15,5 @@ object ErlangEscriptFileType : LanguageFileType(ErlangLanguage) {
 
     override fun getCharset(file: VirtualFile, content: ByteArray): String = "UTF-8"
 
-    override fun getDescription(): String = "Erlang Escript files"
+    override fun getDescription(): String = "Erlang Escript executable script files"
 }

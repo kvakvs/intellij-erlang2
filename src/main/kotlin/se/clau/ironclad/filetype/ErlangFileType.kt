@@ -7,7 +7,7 @@ import javax.swing.Icon
 
 object ErlangFileType : LanguageFileType(ErlangLanguage) {
 
-    override fun getName(): String = "Erlang"
+    override fun getName(): String = "Erlang" // must match <filetype name=""> in plugin.xml
 
     override fun getIcon(): Icon = ErlangIcons.ERL_FILE
 

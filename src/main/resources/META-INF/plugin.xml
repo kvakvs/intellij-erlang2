@@ -28,13 +28,30 @@
         <fileType name="Erlang"
                   language="Erlang"
                   implementationClass="se.clau.ironclad.filetype.ErlangFileType"
-                  extensions="erl;hrl"/>
+                  extensions="erl"/>
         <internalFileTemplate name="Erlang File"/>
+
+        <fileType name="Erlang Include Header"
+                  language="Erlang"
+                  implementationClass="se.clau.ironclad.filetype.ErlangHeaderFileType"
+                  extensions="hrl"/>
+
+<!--        <fileType name="Erlang Rebar Config"-->
+<!--                  language="Erlang"-->
+<!--                  implementationClass="se.clau.ironclad.filetype.ErlangRebarConfigFileType"-->
+<!--                  extensions="rebar.config"/>-->
+<!--        <internalFileTemplate name="Erlang Rebar Config"/>-->
+
         <fileType name="Erlang Escript"
                   language="Erlang"
                   implementationClass="se.clau.ironclad.filetype.ErlangEscriptFileType"
                   extensions="escript;script;esh"/>
         <internalFileTemplate name="Erlang Escript"/>
+
+        <fileType name="Erlang Terms/Config"
+                  language="Erlang"
+                  implementationClass="se.clau.ironclad.filetype.ErlangTermsFileType"
+                  extensions="config;app.src;app"/>
     </extensions>
 
     <actions>

@@ -7,6 +7,8 @@ object ErlangIcons {
     @JvmField
     val ERL_FILE = load("/icons/file-erlang.svg")
     @JvmField
+    val HRL_FILE = load("/icons/file-erlang-header.svg")
+    @JvmField
     val TERMS_FILE = load("/icons/file-terms.svg")
     @JvmField
     val ESCRIPT_FILE = load("/icons/file-escript.svg")
