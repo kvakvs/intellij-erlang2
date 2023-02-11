@@ -28,9 +28,9 @@
      inkscape:window-height="1417"
      id="namedview16"
      showgrid="false"
-     inkscape:zoom="6.5240057"
-     inkscape:cx="-21.168652"
-     inkscape:cy="56.119886"
+     inkscape:zoom="52.192046"
+     inkscape:cx="9.6155562"
+     inkscape:cy="10.126029"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -118,15 +118,16 @@
        y1="8.1609573"
        x2="16.030217"
        y2="8.1609573"
-       gradientUnits="userSpaceOnUse" />
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1,0,0,0.72756924,0,2.4623507)" />
   </defs>
   <rect
-     style="color:#000000;overflow:visible;fill:url(#linearGradient963);fill-opacity:1;stroke:none;stroke-width:0.119034;stroke-linecap:round;stroke-dashoffset:4.87559;stop-color:#000000"
+     style="color:#000000;overflow:visible;fill:url(#linearGradient963);fill-opacity:1;stroke:none;stroke-width:0.101533;stroke-linecap:round;stroke-dashoffset:4.87559;stop-color:#000000"
      id="rect841"
      width="100%"
-     height="100%"
+     height="72.75692%"
      x="-4.6128625e-06"
-     y="0.05382818" />
+     y="2.5015144" />
   <g
      id="g856"
      transform="matrix(0.06599881,0,0,0.06599881,0.03175296,3.306057)"

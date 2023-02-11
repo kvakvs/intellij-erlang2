@@ -50,16 +50,16 @@
   <defs
      id="defs32" />
   <rect
-     style="color:#000000;overflow:visible;fill:#ffffff;fill-opacity:0.99;stroke:none;stroke-width:0.111478;stroke-linecap:round;stroke-dashoffset:4.87559;stop-color:#000000"
+     style="color:#000000;overflow:visible;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.0946484;stroke-linecap:round;stroke-dashoffset:4.87559;stop-color:#000000"
      id="rect841"
      width="100%"
-     height="100%"
+     height="72.085533%"
      x="0.027096318"
-     y="0.86708301" />
+     y="2.2873499" />
   <g
      id="g8"
      style="fill:#a90533"
-     transform="matrix(0.064738,0,0,0.064738,0.03194759,3.2246778)">
+     transform="matrix(0.06563278,0,0,0.06597486,0.03193512,3.088803)">
     <path
        d="M 38.003327,153.65612 C 19.2,133.73121 8.1983366,106.20487 8.2262178,73.362099 8.2002376,44.316871 17.326257,19.351168 33.015129,0.35394059 l -0.02535,0.009505 H 0.01393759 V 153.65929 H 37.979878 l 0.02345,-0.003 v 0 z"
        id="path10" />

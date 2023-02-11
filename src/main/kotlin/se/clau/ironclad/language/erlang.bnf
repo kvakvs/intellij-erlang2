@@ -1,0 +1,94 @@
+{
+  parserClass="se.clau.ironclad.language.ErlangParser"
+  parserUtilClass="se.clau.ironclad.language.ErlangParserUtil"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  tokens = [
+    PLUS            = "+"
+    MINUS           = "-"
+    MULTIPLY        = "*"
+    FLOAT_DIV       = "/"
+    EQEQ            = "=="
+    NEQ             = "/="
+    STRONG_EQ       = "=:="
+    STRONG_NEQ      = "=/="
+    GT              = ">"
+    GTEQ            = ">="
+    LT              = "<"
+    LTEQ            = "=<"
+    PLUS_PLUS       = "++"
+    MINUS_MINUS     = "--"
+    EQ              = "="
+    BANG            = "!"
+    MAYBE_EQ        = "?="
+
+    L_DOUBLE_ANGLE  = "<<"
+    R_DOUBLE_ANGLE  = ">>"
+
+    L_PAREN         = "("
+    R_PAREN         = ")"
+    L_CURLY         = "{"
+    R_CURLY         = "}"
+    L_SQUARE        = "["
+    R_SQUARE        = "]"
+    DOT             = "."
+    COLON           = ":"
+    COLON_COLON     = "::"
+    DOUBLE_BAR      = "||"
+    VERTICAL_BAR    = "|"
+    SEMICOLON       = ";"
+    COMMA           = ","
+    HASH_SYMBOL     = "#"
+    QUESTION        = "?"
+    MATCH           = ":="
+
+    R_DOUBLE_ARROW  = "=>"
+    L_DOUBLE_ARROW  = "<="
+    L_ARROW         = "<-"
+    R_ARROW         = "->"
+
+    INTEGER_DIV     = "div"
+    REMAINDER       = "rem"
+    OR              = "or"
+    XOR             = "xor"
+    AND             = "and"
+    NOT             = "not"
+    BINARY_OR       = "bor"
+    BINARY_XOR      = "bxor"
+    BINARY_AND      = "band"
+    BINARY_NOT      = "bnot"
+    BINARY_SHIFT_L  = "bsl"
+    BINARY_SHIFT_R  = "bsr"
+    ANDALSO         = "andalso"
+    ORELSE          = "orelse"
+  ]
+
+  psiClassPrefix="ErlAST"
+  psiImplClassSuffix="Impl"
+  psiPackage="se.clau.ironclad.language.psi"
+  psiImplPackage="se.clau.ironclad.language.psi.impl"
+
+  elementTypeHolderClass="se.clau.ironclad.language.ErlangElementTypes"
+  elementTypeClass="se.clau.ironclad.language.ErlangElementType"
+  tokenTypeClass="se.clau.ironclad.language.ErlangTokenType"
+}
+
+erlangFile ::= erlangRoot | escriptRoot | termsRoot
+
+private termsRoot ::= &<<isTermsSyntaxFile>> literalExprWithPeriod *
+private erlangRoot ::= &<<isErlangSyntaxFile>> formWithPeriod *
+private escriptRoot ::= &<<isEscriptSyntaxFile>>
+
+// An Erlang module form is an attribute, or a function definition
+private formWithPeriod ::= form period {recoverWhile=formRecover pin=1}
+private formRecover ::= !(PLUS | MINUS | L_DOUBLE_ANGLE | QUESTION
+    | L_SQUARE | L_CURLY | atom_name | single_quote
+    | BINARY_NOT | char_literal | float | integer_literal
+    | NOT | string_literal | var | HASH_SYMBOL | DOT)
+private form ::= function | attribute | !<<eofOrSpace>>
+
+private literalExprWithPeriod ::= literalExpr period {pin=1}
+
+literalExpr ::= integer_literal | float | char | string_literal | char_literal | atom_name
+expr ::= identifier | literalExpr

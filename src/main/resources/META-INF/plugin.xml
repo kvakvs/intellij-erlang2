@@ -24,6 +24,18 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
+        <!-- Parser -->
+        <lang.parserDefinition language="Erlang"
+                               implementationClass="se.clau.ironclad.language.ErlangParserDefinition"/>
+        <lang.parserDefinition language="Erlang Header"
+                               implementationClass="se.clau.ironclad.language.ErlangHeaderParserDefinition"/>
+        <lang.parserDefinition language="Erlang Escript"
+                               implementationClass="se.clau.ironclad.language.ErlangEscriptParserDefinition"/>
+        <lang.parserDefinition language="Erlang Terms"
+                               implementationClass="se.clau.ironclad.language.ErlangTermsParserDefinition"/>
+
+        <stubElementTypeHolder class="se.clau.ironclad.language.ErlangElementTypes"/>
+
         <!-- File Type factory -->
         <fileType name="Erlang"
                   language="Erlang"
@@ -32,26 +44,32 @@
         <internalFileTemplate name="Erlang File"/>
 
         <fileType name="Erlang Include Header"
-                  language="Erlang"
+                  language="Erlang Header"
                   implementationClass="se.clau.ironclad.filetype.ErlangHeaderFileType"
                   extensions="hrl"/>
 
-<!--        <fileType name="Erlang Rebar Config"-->
-<!--                  language="Erlang"-->
-<!--                  implementationClass="se.clau.ironclad.filetype.ErlangRebarConfigFileType"-->
-<!--                  extensions="rebar.config"/>-->
-<!--        <internalFileTemplate name="Erlang Rebar Config"/>-->
+        <!--        <fileType name="Erlang Rebar Config"-->
+        <!--                  language="Erlang"-->
+        <!--                  implementationClass="se.clau.ironclad.filetype.ErlangRebarConfigFileType"-->
+        <!--                  extensions="rebar.config"/>-->
+        <!--        <internalFileTemplate name="Erlang Rebar Config"/>-->
 
         <fileType name="Erlang Escript"
-                  language="Erlang"
+                  language="Erlang Escript"
                   implementationClass="se.clau.ironclad.filetype.ErlangEscriptFileType"
                   extensions="escript;script;esh"/>
         <internalFileTemplate name="Erlang Escript"/>
 
         <fileType name="Erlang Terms/Config"
-                  language="Erlang"
+                  language="Erlang Terms"
                   implementationClass="se.clau.ironclad.filetype.ErlangTermsFileType"
-                  extensions="config;app.src;app"/>
+                  extensions="config;app.src;app"
+                  patterns="*.app.src;*.config;*.app"/>
+
+        <!--        <fileType name="Erlang Rebar Config"-->
+        <!--                  language="Erlang Rebar Config"-->
+        <!--                  implementationClass="se.clau.ironclad.filetype.ErlangRebarConfigFileType"-->
+        <!--                  extensions="rebar.config"/>-->
     </extensions>
 
     <actions>
