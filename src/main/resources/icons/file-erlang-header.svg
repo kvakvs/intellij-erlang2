@@ -28,9 +28,9 @@
      inkscape:window-height="1417"
      id="namedview16"
      showgrid="false"
-     inkscape:zoom="6.5240058"
-     inkscape:cx="-14.352417"
-     inkscape:cy="54.507376"
+     inkscape:zoom="52.192046"
+     inkscape:cx="7.0755466"
+     inkscape:cy="8.9800532"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -58,7 +58,7 @@
          offset="0"
          id="stop850" />
       <stop
-         style="stop-color:#8efb81;stop-opacity:1"
+         style="stop-color:#062f01;stop-opacity:1"
          offset="1"
          id="stop852" />
     </linearGradient>
@@ -73,12 +73,12 @@
        y2="76.993371" />
   </defs>
   <rect
-     style="color:#000000;overflow:visible;fill:#ffffff;fill-opacity:0.99;stroke:none;stroke-width:0.111478;stroke-linecap:round;stroke-dashoffset:4.87559;stop-color:#000000"
+     style="color:#000000;overflow:visible;fill:#ccffaa;fill-opacity:0.99;stroke:none;stroke-width:0.0956759;stroke-linecap:round;stroke-dashoffset:4.87559;stop-color:#000000"
      id="rect841"
      width="100%"
-     height="100%"
+     height="73.659111%"
      x="0.054192662"
-     y="0.027096398" />
+     y="2.2684875" />
   <g
      id="g8"
      style="fill:url(#linearGradient856);fill-opacity:1"

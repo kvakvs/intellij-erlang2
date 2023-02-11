@@ -49,6 +49,9 @@ import static com.intellij.psi.TokenType.*;
 %s IN_RAW_LITERAL
 %s IN_RAW_LITERAL_SUFFIX
 
+// For 'atom names' in quotes
+%state IN_QUOTES
+
 %unicode
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,13 +62,6 @@ EOL_WS           = \n | \r | \r\n
 LINE_WS          = [\ \t]
 WHITE_SPACE_CHAR = {EOL_WS} | {LINE_WS}
 WHITE_SPACE      = {WHITE_SPACE_CHAR}+
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Identifier
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-IDENTIFIER = ("r#")?[_\p{xidstart}][\p{xidcontinue}]*
-SUFFIX     = {IDENTIFIER}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Literals
@@ -79,7 +75,7 @@ EXPONENT      = [eE] [-+]? [0-9_]+
 INT_LITERAL = ( {DEC_LITERAL}
               | {HEX_LITERAL}
               | {OCT_LITERAL}
-              | {BIN_LITERAL} ) {EXPONENT}? {SUFFIX}?
+              | {BIN_LITERAL} ) {EXPONENT}?
 
 DEC_LITERAL = [0-9] [0-9_]*
 HEX_LITERAL = "0x" [a-fA-F0-9_]*
@@ -87,13 +83,40 @@ OCT_LITERAL = "0o" [0-7_]*
 BIN_LITERAL = "0b" [01_]*
 
 
-CHAR_LITERAL   = ( \' ( [^\\\'\r\n] | \\[^\r\n] | "\\x" [a-fA-F0-9]+ | "\\u{" [a-fA-F0-9][a-fA-F0-9_]* "}"? )? ( \' {SUFFIX}? | \\ )? )
-               | ( \' [\p{xidcontinue}]* \' {SUFFIX}? )
-STRING_LITERAL = \" ( [^\\\"] | \\[^] )* ( \" {SUFFIX}? | \\ )?
+//CHAR_LITERAL   = ( \' ( [^\\\'\r\n] | \\[^\r\n] | "\\x" [a-fA-F0-9]+ | "\\u{" [a-fA-F0-9][a-fA-F0-9_]* "}"? )? ( \' \\ )? )
+//               | ( \' [\p{xidcontinue}]* \'  )
+//STRING_LITERAL = \" ( [^\\\"] | \\[^] )* ( \" \\ )?
 
-//INNER_EOL_DOC = ({LINE_WS}*"//!".*{EOL_WS})*({LINE_WS}*"//!".*)
-// !(!a|b) is a (set) difference between a and b.
-//EOL_DOC_LINE  = {LINE_WS}*!(!("///".*)|("////".*))
+/* Without the \\\" at the start the lexer won't find it, for unknown reasons */
+ESC = "\\" ( [^] )
+CHAR = {ESC} | [^\'\"\\]
+STRING_BAD1 = \" ({CHAR} | \') *
+STRING_LITERAL = {STRING_BAD1} \"
+
+ALPHA_UPPERCASE = [A-Z]
+ALPHA_LOWERCASE = [a-z]
+ALPHA = {ALPHA_UPPERCASE} | {ALPHA_LOWERCASE}
+NUM = [0-9]
+OCTAL_ESCAPE = \\ [0-7]{1,3}
+CONTROL_NAME = [@A-Z\[\\\]\^_] /* this is the octal range \100 - \137 */
+CONTROL_ESCAPE = \\ \^ {CONTROL_NAME}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Identifier: Variable and Atom
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Atoms and quoted atoms
+ESCAPE_SEQ = \\\" | "\\b" | "\\d" | "\\e" | "\\f" | "\\n" | "\\r" | "\\s" | "\\t" | "\\v" | "\\'"
+    | "\\\\" | "\\[" | "\\{" | "\\]" | "\\}" | "\\`" | "\\$" | "\\=" | "\\%" | "\\," | "\\." | "\\_"
+    | {CONTROL_ESCAPE} | {OCTAL_ESCAPE}
+QUOTED_CHAR = \\' | {ESCAPE_SEQ}  | [^'\\] /* [a-zA-Z0-9#_.@,;:!?/&%$+*~\^-] */
+QUOTED_ATOM = {QUOTED_CHAR}+
+ATOM_NAME_CHAR = {ALPHA} | {NUM} | @ | _
+ATOM = ({ALPHA_LOWERCASE} {ATOM_NAME_CHAR}*)
+EMPTY_ATOM = ''
+
+// Variable
+VARIABLE_NAME_CHAR = {ALPHA} | {NUM} | _
+VARIABLE = ( "_" | {ALPHA_UPPERCASE} ) {VARIABLE_NAME_CHAR} *
 
 
 %%
@@ -112,7 +135,7 @@ STRING_LITERAL = \" ( [^\\\"] | \\[^] )* ( \" {SUFFIX}? | \\ )?
   ":"                             { return COLON; }
   ";"                             { return SEMICOLON; }
   ","                             { return COMMA; }
-  "."                             { return DOT; }
+  "."                             { return PERIOD; }
   "="                             { return EQ; }
   "/="                            { return NEQ; }
   "=="                            { return EQEQ; }
@@ -151,14 +174,22 @@ STRING_LITERAL = \" ( [^\\\"] | \\[^] )* ( \" {SUFFIX}? | \\ )?
     "%%" .*                        { return FUNCTION_DOC_COMMENT; }
     "%" .*                         { return COMMENT; }
 
-    {IDENTIFIER}                   { return IDENTIFIER; }
+    {VARIABLE}                     { return VAR; }
 
-  /* LITERALS */
+    /* LITERALS */
 
-  {INT_LITERAL}                   { return INTEGER_LITERAL; }
-  {STRING_LITERAL}                { return STRING_LITERAL; }
+    {ATOM} | {EMPTY_ATOM}          { return ATOM_NAME; }
+    '                              { yybegin(IN_QUOTES); return SINGLE_QUOTE; }
 
-  {WHITE_SPACE}                   { return WHITE_SPACE; }
+    {INT_LITERAL}                   { return INTEGER_LITERAL; }
+    {STRING_LITERAL}                { return STRING_LITERAL; }
+
+    {WHITE_SPACE}                   { return WHITE_SPACE; }
+}
+
+<IN_QUOTES> {
+    {QUOTED_ATOM}                 { return ATOM_NAME; }
+    '                             { yybegin(YYINITIAL); return SINGLE_QUOTE; }
 }
 
 <IN_SHEBANG> {

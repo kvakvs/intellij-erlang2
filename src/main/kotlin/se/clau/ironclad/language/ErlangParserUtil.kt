@@ -37,8 +37,8 @@ class ErlangParserUtil: GeneratedParserUtilBase() {
             val two = builder.rawLookup(2)
 
             if (one === TokenType.WHITE_SPACE
-                && (two === ErlangElementTypes.DOT || two == null)
-                || one == null && builder.tokenType === ErlangElementTypes.DOT
+                && (two === ErlangElementTypes.PERIOD || two == null)
+                || one == null && builder.tokenType === ErlangElementTypes.PERIOD
             ) {
                 builder.remapCurrentToken(TokenType.ERROR_ELEMENT)
                 return true

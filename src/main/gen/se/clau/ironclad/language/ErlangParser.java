@@ -36,6 +36,30 @@ public class ErlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // ATOM_NAME | (SINGLE_QUOTE ATOM_NAME SINGLE_QUOTE)
+  public static boolean atom(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "atom")) return false;
+    if (!nextTokenIs(b, "<atom>", ATOM_NAME, SINGLE_QUOTE)) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, ATOM, "<atom>");
+    r = consumeToken(b, ATOM_NAME);
+    if (!r) r = atom_1(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // SINGLE_QUOTE ATOM_NAME SINGLE_QUOTE
+  private static boolean atom_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "atom_1")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = consumeTokens(b, 1, SINGLE_QUOTE, ATOM_NAME, SINGLE_QUOTE);
+    p = r; // pin = 1
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  /* ********************************************************** */
   // erlangRoot | escriptRoot | termsRoot
   static boolean erlangFile(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "erlangFile")) return false;
@@ -47,7 +71,7 @@ public class ErlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // &<<isErlangSyntaxFile>> formWithPeriod *
+  // &<<isErlangSyntaxFile>> form *
   static boolean erlangRoot(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "erlangRoot")) return false;
     boolean r;
@@ -68,12 +92,12 @@ public class ErlangParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // formWithPeriod *
+  // form *
   private static boolean erlangRoot_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "erlangRoot_1")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!formWithPeriod(b, l + 1)) break;
+      if (!form(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "erlangRoot_1", c)) break;
     }
     return true;
@@ -91,25 +115,25 @@ public class ErlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // identifier | literalExpr
+  // VAR | literalExpr
   public static boolean expr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "expr")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, EXPR, "<expr>");
-    r = consumeToken(b, IDENTIFIER);
+    r = consumeToken(b, VAR);
     if (!r) r = literalExpr(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // function | attribute | !<<eofOrSpace>>
+  // functionDef | moduleAttr | !<<eofOrSpace>>
   static boolean form(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "form")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, FUNCTION);
-    if (!r) r = consumeToken(b, ATTRIBUTE);
+    r = functionDef(b, l + 1);
+    if (!r) r = moduleAttr(b, l + 1);
     if (!r) r = form_2(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -126,61 +150,104 @@ public class ErlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !(PLUS | MINUS | L_DOUBLE_ANGLE | QUESTION 
-  //     | L_SQUARE | L_CURLY | atom_name | single_quote 
-  //     | BINARY_NOT | char_literal | float | integer_literal 
-  //     | NOT | string_literal | var | HASH_SYMBOL | DOT)
-  static boolean formRecover(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "formRecover")) return false;
+  // atom L_PAREN functionDefArgs R_PAREN R_ARROW functionDefBody PERIOD
+  public static boolean functionDef(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionDef")) return false;
+    if (!nextTokenIs(b, "<function def>", ATOM_NAME, SINGLE_QUOTE)) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !formRecover_0(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, FUNCTION_DEF, "<function def>");
+    r = atom(b, l + 1);
+    r = r && consumeToken(b, L_PAREN);
+    r = r && functionDefArgs(b, l + 1);
+    r = r && consumeTokens(b, 0, R_PAREN, R_ARROW);
+    r = r && functionDefBody(b, l + 1);
+    r = r && consumeToken(b, PERIOD);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
-  // PLUS | MINUS | L_DOUBLE_ANGLE | QUESTION 
-  //     | L_SQUARE | L_CURLY | atom_name | single_quote 
-  //     | BINARY_NOT | char_literal | float | integer_literal 
-  //     | NOT | string_literal | var | HASH_SYMBOL | DOT
-  private static boolean formRecover_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "formRecover_0")) return false;
+  /* ********************************************************** */
+  // VAR | atom
+  public static boolean functionDefArg(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionDefArg")) return false;
     boolean r;
-    r = consumeToken(b, PLUS);
-    if (!r) r = consumeToken(b, MINUS);
-    if (!r) r = consumeToken(b, L_DOUBLE_ANGLE);
-    if (!r) r = consumeToken(b, QUESTION);
-    if (!r) r = consumeToken(b, L_SQUARE);
-    if (!r) r = consumeToken(b, L_CURLY);
-    if (!r) r = consumeToken(b, ATOM_NAME);
-    if (!r) r = consumeToken(b, SINGLE_QUOTE);
-    if (!r) r = consumeToken(b, BINARY_NOT);
-    if (!r) r = consumeToken(b, CHAR_LITERAL);
-    if (!r) r = consumeToken(b, FLOAT);
-    if (!r) r = consumeToken(b, INTEGER_LITERAL);
-    if (!r) r = consumeToken(b, NOT);
-    if (!r) r = consumeToken(b, STRING_LITERAL);
-    if (!r) r = consumeToken(b, VAR);
-    if (!r) r = consumeToken(b, HASH_SYMBOL);
-    if (!r) r = consumeToken(b, DOT);
+    Marker m = enter_section_(b, l, _NONE_, FUNCTION_DEF_ARG, "<function def arg>");
+    r = consumeToken(b, VAR);
+    if (!r) r = atom(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // form period
-  static boolean formWithPeriod(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "formWithPeriod")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_);
-    r = form(b, l + 1);
-    p = r; // pin = 1
-    r = r && consumeToken(b, PERIOD);
-    exit_section_(b, l, m, r, p, ErlangParser::formRecover);
-    return r || p;
+  // functionDefArg ( COMMA functionDefArg )*
+  static boolean functionDefArgs(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionDefArgs")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = functionDefArg(b, l + 1);
+    r = r && functionDefArgs_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // ( COMMA functionDefArg )*
+  private static boolean functionDefArgs_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionDefArgs_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!functionDefArgs_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "functionDefArgs_1", c)) break;
+    }
+    return true;
+  }
+
+  // COMMA functionDefArg
+  private static boolean functionDefArgs_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionDefArgs_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COMMA);
+    r = r && functionDefArg(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */
-  // integer_literal | float | char | string_literal | char_literal | atom_name
+  // expr ( COMMA expr )*
+  static boolean functionDefBody(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionDefBody")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = expr(b, l + 1);
+    r = r && functionDefBody_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // ( COMMA expr )*
+  private static boolean functionDefBody_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionDefBody_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!functionDefBody_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "functionDefBody_1", c)) break;
+    }
+    return true;
+  }
+
+  // COMMA expr
+  private static boolean functionDefBody_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionDefBody_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COMMA);
+    r = r && expr(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // INTEGER_LITERAL | float | char | STRING_LITERAL | CHAR_LITERAL | atom
   public static boolean literalExpr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literalExpr")) return false;
     boolean r;
@@ -190,13 +257,13 @@ public class ErlangParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, CHAR);
     if (!r) r = consumeToken(b, STRING_LITERAL);
     if (!r) r = consumeToken(b, CHAR_LITERAL);
-    if (!r) r = consumeToken(b, ATOM_NAME);
+    if (!r) r = atom(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // literalExpr period
+  // literalExpr PERIOD
   static boolean literalExprWithPeriod(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literalExprWithPeriod")) return false;
     boolean r, p;
@@ -206,6 +273,82 @@ public class ErlangParser implements PsiParser, LightPsiParser {
     r = r && consumeToken(b, PERIOD);
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  /* ********************************************************** */
+  // MINUS atom ( L_PAREN moduleAttrContents R_PAREN )? PERIOD
+  public static boolean moduleAttr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "moduleAttr")) return false;
+    if (!nextTokenIs(b, MINUS)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, MODULE_ATTR, null);
+    r = consumeToken(b, MINUS);
+    r = r && atom(b, l + 1);
+    p = r; // pin = 2
+    r = r && report_error_(b, moduleAttr_2(b, l + 1));
+    r = p && consumeToken(b, PERIOD) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // ( L_PAREN moduleAttrContents R_PAREN )?
+  private static boolean moduleAttr_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "moduleAttr_2")) return false;
+    moduleAttr_2_0(b, l + 1);
+    return true;
+  }
+
+  // L_PAREN moduleAttrContents R_PAREN
+  private static boolean moduleAttr_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "moduleAttr_2_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, L_PAREN);
+    r = r && moduleAttrContents(b, l + 1);
+    r = r && consumeToken(b, R_PAREN);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // literalExpr? ( COMMA literalExpr )*
+  static boolean moduleAttrContents(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "moduleAttrContents")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = moduleAttrContents_0(b, l + 1);
+    r = r && moduleAttrContents_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // literalExpr?
+  private static boolean moduleAttrContents_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "moduleAttrContents_0")) return false;
+    literalExpr(b, l + 1);
+    return true;
+  }
+
+  // ( COMMA literalExpr )*
+  private static boolean moduleAttrContents_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "moduleAttrContents_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!moduleAttrContents_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "moduleAttrContents_1", c)) break;
+    }
+    return true;
+  }
+
+  // COMMA literalExpr
+  private static boolean moduleAttrContents_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "moduleAttrContents_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COMMA);
+    r = r && literalExpr(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */

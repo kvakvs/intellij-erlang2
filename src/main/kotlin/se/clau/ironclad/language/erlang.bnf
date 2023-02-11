@@ -32,16 +32,17 @@
     R_CURLY         = "}"
     L_SQUARE        = "["
     R_SQUARE        = "]"
-    DOT             = "."
     COLON           = ":"
     COLON_COLON     = "::"
     DOUBLE_BAR      = "||"
     VERTICAL_BAR    = "|"
     SEMICOLON       = ";"
     COMMA           = ","
+    PERIOD          = "."
     HASH_SYMBOL     = "#"
     QUESTION        = "?"
     MATCH           = ":="
+    SINGLE_QUOTE    = "'"
 
     R_DOUBLE_ARROW  = "=>"
     L_DOUBLE_ARROW  = "<="
@@ -77,18 +78,34 @@
 erlangFile ::= erlangRoot | escriptRoot | termsRoot
 
 private termsRoot ::= &<<isTermsSyntaxFile>> literalExprWithPeriod *
-private erlangRoot ::= &<<isErlangSyntaxFile>> formWithPeriod *
+private erlangRoot ::= &<<isErlangSyntaxFile>> form *
 private escriptRoot ::= &<<isEscriptSyntaxFile>>
 
 // An Erlang module form is an attribute, or a function definition
-private formWithPeriod ::= form period {recoverWhile=formRecover pin=1}
-private formRecover ::= !(PLUS | MINUS | L_DOUBLE_ANGLE | QUESTION
-    | L_SQUARE | L_CURLY | atom_name | single_quote
-    | BINARY_NOT | char_literal | float | integer_literal
-    | NOT | string_literal | var | HASH_SYMBOL | DOT)
-private form ::= function | attribute | !<<eofOrSpace>>
+//private formWithPeriod ::= form PERIOD {recoverWhile=formRecover pin=1}
+//private formRecover ::= !(PLUS | MINUS | L_DOUBLE_ANGLE | QUESTION
+//    | L_SQUARE | L_CURLY | atom | BINARY_NOT | CHAR_LITERAL
+//    | float | INTEGER_LITERAL | NOT | STRING_LITERAL | VAR | HASH_SYMBOL | PERIOD)
+private form ::= functionDef | moduleAttr | !<<eofOrSpace>>
 
-private literalExprWithPeriod ::= literalExpr period {pin=1}
+private literalExprWithPeriod ::= literalExpr PERIOD {pin=1}
 
-literalExpr ::= integer_literal | float | char | string_literal | char_literal | atom_name
-expr ::= identifier | literalExpr
+//
+// General Erlang syntax constructs, shared with different file types
+//
+literalExpr ::= INTEGER_LITERAL | float | char | STRING_LITERAL | CHAR_LITERAL | atom
+
+// Expr same as literal expr but allows function calls and variables
+expr ::= VAR | literalExpr
+atom ::= ATOM_NAME | (SINGLE_QUOTE ATOM_NAME SINGLE_QUOTE) {pin(".*") = 1}
+
+//
+// Erlang Module constructs
+//
+moduleAttr ::= MINUS atom ( L_PAREN moduleAttrContents R_PAREN )? PERIOD {pin=2}
+private moduleAttrContents ::= literalExpr? ( COMMA literalExpr )*
+
+functionDef ::= atom L_PAREN functionDefArgs R_PAREN R_ARROW functionDefBody PERIOD
+private functionDefArgs ::= functionDefArg ( COMMA functionDefArg )*
+functionDefArg ::= VAR | atom // TODO: Proper match expression syntax
+private functionDefBody ::= expr ( COMMA expr )*
