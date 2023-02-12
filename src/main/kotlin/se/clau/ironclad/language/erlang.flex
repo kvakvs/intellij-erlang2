@@ -1,26 +1,20 @@
 package se.clau.ironclad.language;
 
-import com.intellij.lexer.*;
-import com.intellij.psi.tree.IElementType;
-
 import static se.clau.ironclad.language.ErlangElementTypes.*;
 import static se.clau.ironclad.language.ErlangParserDefinition.*;
+import com.intellij.lexer.FlexLexer;
 import static com.intellij.psi.TokenType.*;
+import com.intellij.psi.tree.IElementType;
 
 %%
 
 %{
-  public _ErlangLexer() {
+  public GeneratedErlangLexer() {
     this((java.io.Reader)null);
   }
 %}
 
 %{}
-  /**
-    * '#+' stride demarking start/end of raw string/byte literal
-    */
-  //private int zzShaStride = -1;
-
   /**
     * Dedicated storage for starting position of some previously successful
     * match
@@ -34,23 +28,15 @@ import static com.intellij.psi.TokenType.*;
 %}
 
 %public
-%class _ErlangLexer
+%class GeneratedErlangLexer
 %implements FlexLexer
 %function advance
 %type IElementType
 
-%s IN_SHEBANG
-
-//%s IN_BLOCK_COMMENT
-//%s IN_OUTER_EOL_COMMENT
-
-%s IN_LIFETIME_OR_CHAR
-
-%s IN_RAW_LITERAL
-%s IN_RAW_LITERAL_SUFFIX
+%s IN_SHEBANG_STATE
 
 // For 'atom names' in quotes
-%state IN_QUOTES
+%s IN_QUOTED_ATOM_STATE
 
 %unicode
 
@@ -121,39 +107,53 @@ VARIABLE = ( "_" | {ALPHA_UPPERCASE} ) {VARIABLE_NAME_CHAR} *
 
 %%
 <YYINITIAL> {
-  "#" / "!"[^\[]                  { if (getTokenStart() == 0) yybegin(IN_SHEBANG); else return HASH_SYMBOL; }
+    "#" / "!"[^\[]                 { if (getTokenStart() == 0) yybegin(IN_SHEBANG_STATE); else return HASH_SYMBOL; }
 
-//  \'                              { yybegin(IN_LIFETIME_OR_CHAR); yypushback(1); }
+    // Preprocessor
+    // These do not return a token, resolve in place
+    "-define"           { return PP_DEFINE; }
+    "-undef"            { return PP_UNDEF; }
+    "-ifdef"            { return PP_IFDEF; }
+    "-if"               { return PP_IF; }
+    "-elif"             { return PP_ELIF; }
+    "-ifndef"           { return PP_IFNDEF; }
+    "-else"             { return PP_ELSE; }
+    "-endif"            { return PP_ENDIF; }
+    "-include"          { return PP_INCLUDE; }
+    "-include_lib"      { return PP_INCLUDELIB; }
+    // Preprocessor end
 
-  "{"                             { return L_CURLY; }
-  "}"                             { return R_CURLY; }
-  "["                             { return L_SQUARE; }
-  "]"                             { return R_SQUARE; }
-  "("                             { return L_PAREN; }
-  ")"                             { return R_PAREN; }
-  "::"                            { return COLON_COLON; }
-  ":"                             { return COLON; }
-  ";"                             { return SEMICOLON; }
-  ","                             { return COMMA; }
-  "."                             { return PERIOD; }
-  "="                             { return EQ; }
-  "/="                            { return NEQ; }
-  "=="                            { return EQEQ; }
-  "!"                             { return BANG; }
-  "+"                             { return PLUS; }
-  "-"                             { return MINUS; }
-  "#"                             { return HASH_SYMBOL; }
-  "|"                             { return VERTICAL_BAR; }
-  "||"                            { return DOUBLE_BAR; }
-  "->"                            { return R_ARROW; }
-  "<-"                            { return L_ARROW; }
-  "=>"                            { return R_DOUBLE_ARROW; }
-  "<="                            { return L_DOUBLE_ARROW; }
-  "<"                             { return LT; }
-  "*"                             { return MULTIPLY; }
-  "/"                             { return FLOAT_DIV; }
-  ">"                             { return GT; }
-  "?"                             { return QUESTION; }
+    "{"                            { return L_CURLY; }
+    "}"                            { return R_CURLY; }
+    "["                            { return L_SQUARE; }
+    "]"                            { return R_SQUARE; }
+    "("                            { return L_PAREN; }
+    ")"                            { return R_PAREN; }
+    "::"                           { return COLON_COLON; }
+    ":"                            { return COLON; }
+    ";"                            { return SEMICOLON; }
+    ","                            { return COMMA; }
+    "."                            { return PERIOD; }
+    "/="                           { return NEQ; }
+    "=="                           { return EQEQ; }
+    "="                            { return EQ; }
+    "!"                            { return BANG; }
+    "#"                            { return HASH_SYMBOL; }
+    "||"                           { return DOUBLE_BAR; }
+    "|"                            { return VERTICAL_BAR; }
+    "->"                           { return R_ARROW; }
+    "<-"                           { return L_ARROW; }
+    "=>"                           { return R_DOUBLE_ARROW; }
+    "<="                           { return L_DOUBLE_ARROW; }
+    "*"                            { return MULTIPLY; }
+    "/"                            { return FLOAT_DIV; }
+    "+"                            { return PLUS; }
+    "-"                            { return MINUS; }
+    "<<"                           { return L_DOUBLE_ANGLE; }
+    "<"                            { return LT; }
+    ">>"                           { return R_DOUBLE_ANGLE; }
+    ">"                            { return GT; }
+    "?"                            { return QUESTION; }
 
     "div"                          { return INTEGER_DIV; }
     "rem"                          { return REMAINDER; }
@@ -179,7 +179,7 @@ VARIABLE = ( "_" | {ALPHA_UPPERCASE} ) {VARIABLE_NAME_CHAR} *
     /* LITERALS */
 
     {ATOM} | {EMPTY_ATOM}          { return ATOM_NAME; }
-    '                              { yybegin(IN_QUOTES); return SINGLE_QUOTE; }
+    '                              { yybegin(IN_QUOTED_ATOM_STATE); return SINGLE_QUOTE; }
 
     {INT_LITERAL}                   { return INTEGER_LITERAL; }
     {STRING_LITERAL}                { return STRING_LITERAL; }
@@ -187,12 +187,12 @@ VARIABLE = ( "_" | {ALPHA_UPPERCASE} ) {VARIABLE_NAME_CHAR} *
     {WHITE_SPACE}                   { return WHITE_SPACE; }
 }
 
-<IN_QUOTES> {
+<IN_QUOTED_ATOM_STATE> {
     {QUOTED_ATOM}                 { return ATOM_NAME; }
     '                             { yybegin(YYINITIAL); return SINGLE_QUOTE; }
 }
 
-<IN_SHEBANG> {
+<IN_SHEBANG_STATE> {
     [\r\n]  { yypushback(1); yybegin(YYINITIAL); return SHEBANG_LINE;}
     [^]     {}
     <<EOF>> { yybegin(YYINITIAL); return SHEBANG_LINE;}

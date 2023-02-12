@@ -14,6 +14,8 @@ public interface ErlangElementTypes {
   IElementType FUNCTION_DEF_ARG = new ErlangElementType("FUNCTION_DEF_ARG");
   IElementType LITERAL_EXPR = new ErlangElementType("LITERAL_EXPR");
   IElementType MODULE_ATTR = new ErlangElementType("MODULE_ATTR");
+  IElementType PREPROCESSOR_DEFINE = new ErlangElementType("PREPROCESSOR_DEFINE");
+  IElementType PREPROCESSOR_DEFINE_ARGS = new ErlangElementType("PREPROCESSOR_DEFINE_ARGS");
 
   IElementType AND = new ErlangTokenType("and");
   IElementType ANDALSO = new ErlangTokenType("andalso");
@@ -60,6 +62,16 @@ public interface ErlangElementTypes {
   IElementType PERIOD = new ErlangTokenType(".");
   IElementType PLUS = new ErlangTokenType("+");
   IElementType PLUS_PLUS = new ErlangTokenType("++");
+  IElementType PP_DEFINE = new ErlangTokenType("preprocessor -define");
+  IElementType PP_ELIF = new ErlangTokenType("preprocessor -elif");
+  IElementType PP_ELSE = new ErlangTokenType("preprocessor -else");
+  IElementType PP_ENDIF = new ErlangTokenType("preprocessor -endif");
+  IElementType PP_IF = new ErlangTokenType("preprocessor -if");
+  IElementType PP_IFDEF = new ErlangTokenType("preprocessor -ifdef");
+  IElementType PP_IFNDEF = new ErlangTokenType("preprocessor -ifndef");
+  IElementType PP_INCLUDE = new ErlangTokenType("preprocessor -include");
+  IElementType PP_INCLUDELIB = new ErlangTokenType("preprocessor -include_lib");
+  IElementType PP_UNDEF = new ErlangTokenType("preprocessor -undef");
   IElementType QUESTION = new ErlangTokenType("?");
   IElementType REMAINDER = new ErlangTokenType("rem");
   IElementType R_ARROW = new ErlangTokenType("->");
@@ -81,22 +93,28 @@ public interface ErlangElementTypes {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
       if (type == ATOM) {
-        return new ErlASTAtomImpl(node);
+        return new ErlPsiAtomImpl(node);
       }
       else if (type == EXPR) {
-        return new ErlASTExprImpl(node);
+        return new ErlPsiExprImpl(node);
       }
       else if (type == FUNCTION_DEF) {
-        return new ErlASTFunctionDefImpl(node);
+        return new ErlPsiFunctionDefImpl(node);
       }
       else if (type == FUNCTION_DEF_ARG) {
-        return new ErlASTFunctionDefArgImpl(node);
+        return new ErlPsiFunctionDefArgImpl(node);
       }
       else if (type == LITERAL_EXPR) {
-        return new ErlASTLiteralExprImpl(node);
+        return new ErlPsiLiteralExprImpl(node);
       }
       else if (type == MODULE_ATTR) {
-        return new ErlASTModuleAttrImpl(node);
+        return new ErlPsiModuleAttrImpl(node);
+      }
+      else if (type == PREPROCESSOR_DEFINE) {
+        return new ErlPsiPreprocessorDefineImpl(node);
+      }
+      else if (type == PREPROCESSOR_DEFINE_ARGS) {
+        return new ErlPsiPreprocessorDefineArgsImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

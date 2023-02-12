@@ -127,21 +127,25 @@ public class ErlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // functionDef | moduleAttr | !<<eofOrSpace>>
+  // functionDef
+  //     | preprocessorDefine
+  //     | moduleAttr
+  //     | !<<eofOrSpace>>
   static boolean form(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "form")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = functionDef(b, l + 1);
+    if (!r) r = preprocessorDefine(b, l + 1);
     if (!r) r = moduleAttr(b, l + 1);
-    if (!r) r = form_2(b, l + 1);
+    if (!r) r = form_3(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // !<<eofOrSpace>>
-  private static boolean form_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "form_2")) return false;
+  private static boolean form_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "form_3")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NOT_);
     r = !eofOrSpace(b, l + 1);
@@ -348,6 +352,125 @@ public class ErlangParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, COMMA);
     r = r && literalExpr(b, l + 1);
     exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // PP_DEFINE L_PAREN preprocessorMacroIdent
+  //     preprocessorDefineArgs? COMMA
+  //     preprocessorMacroBodyToken*
+  //     preprocessorDirectiveEnd
+  public static boolean preprocessorDefine(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorDefine")) return false;
+    if (!nextTokenIs(b, PP_DEFINE)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, PREPROCESSOR_DEFINE, null);
+    r = consumeTokens(b, 2, PP_DEFINE, L_PAREN);
+    p = r; // pin = 2
+    r = r && report_error_(b, preprocessorMacroIdent(b, l + 1));
+    r = p && report_error_(b, preprocessorDefine_3(b, l + 1)) && r;
+    r = p && report_error_(b, consumeToken(b, COMMA)) && r;
+    r = p && report_error_(b, preprocessorDefine_5(b, l + 1)) && r;
+    r = p && preprocessorDirectiveEnd(b, l + 1) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // preprocessorDefineArgs?
+  private static boolean preprocessorDefine_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorDefine_3")) return false;
+    preprocessorDefineArgs(b, l + 1);
+    return true;
+  }
+
+  // preprocessorMacroBodyToken*
+  private static boolean preprocessorDefine_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorDefine_5")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!preprocessorMacroBodyToken(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "preprocessorDefine_5", c)) break;
+    }
+    return true;
+  }
+
+  /* ********************************************************** */
+  // L_PAREN VAR ( COMMA VAR )* R_PAREN
+  public static boolean preprocessorDefineArgs(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorDefineArgs")) return false;
+    if (!nextTokenIs(b, L_PAREN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokens(b, 0, L_PAREN, VAR);
+    r = r && preprocessorDefineArgs_2(b, l + 1);
+    r = r && consumeToken(b, R_PAREN);
+    exit_section_(b, m, PREPROCESSOR_DEFINE_ARGS, r);
+    return r;
+  }
+
+  // ( COMMA VAR )*
+  private static boolean preprocessorDefineArgs_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorDefineArgs_2")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!preprocessorDefineArgs_2_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "preprocessorDefineArgs_2", c)) break;
+    }
+    return true;
+  }
+
+  // COMMA VAR
+  private static boolean preprocessorDefineArgs_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorDefineArgs_2_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokens(b, 0, COMMA, VAR);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // R_PAREN PERIOD
+  static boolean preprocessorDirectiveEnd(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorDirectiveEnd")) return false;
+    if (!nextTokenIs(b, R_PAREN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokens(b, 0, R_PAREN, PERIOD);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !preprocessorDirectiveEnd
+  static boolean preprocessorDirectiveRecover(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorDirectiveRecover")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !preprocessorDirectiveEnd(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // <<macroBodyAnyToken>>
+  static boolean preprocessorMacroBodyToken(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorMacroBodyToken")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = macroBodyAnyToken(b, l + 1);
+    exit_section_(b, l, m, r, false, ErlangParser::preprocessorDirectiveRecover);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // VAR | ATOM_NAME
+  static boolean preprocessorMacroIdent(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "preprocessorMacroIdent")) return false;
+    if (!nextTokenIs(b, "", ATOM_NAME, VAR)) return false;
+    boolean r;
+    r = consumeToken(b, VAR);
+    if (!r) r = consumeToken(b, ATOM_NAME);
     return r;
   }
 

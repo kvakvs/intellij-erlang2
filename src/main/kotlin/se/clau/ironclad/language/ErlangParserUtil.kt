@@ -6,10 +6,11 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.impl.source.resolve.FileContextUtil
 import se.clau.ironclad.filetype.ErlangEscriptFileType
 import se.clau.ironclad.filetype.ErlangFileType
+import se.clau.ironclad.filetype.ErlangHeaderFileType
 import se.clau.ironclad.filetype.ErlangTermsFileType
 
 @Suppress("UNUSED_PARAMETER")
-class ErlangParserUtil: GeneratedParserUtilBase() {
+class ErlangParserUtil : ErlangParserUtilBase() {
     companion object {
         @JvmStatic
         fun isTermsSyntaxFile(builder: PsiBuilder, level: Int): Boolean {
@@ -20,7 +21,7 @@ class ErlangParserUtil: GeneratedParserUtilBase() {
         @JvmStatic
         fun isErlangSyntaxFile(builder: PsiBuilder, level: Int): Boolean {
             val file = builder.getUserData(FileContextUtil.CONTAINING_FILE_KEY)!!
-            return file.fileType === ErlangFileType
+            return file.fileType === ErlangFileType || file.fileType == ErlangHeaderFileType
         }
 
         @JvmStatic
@@ -44,6 +45,20 @@ class ErlangParserUtil: GeneratedParserUtilBase() {
                 return true
             }
             return false
+        }
+
+        /**
+         * Matches any token other than ")" "." pair
+         */
+        @JvmStatic
+        fun macroBodyAnyToken(b: PsiBuilder, level: Int): Boolean {
+            val tokenType = b.tokenType
+            return if (tokenType == ErlangElementTypes.R_PAREN && b.lookAhead(1) == ErlangElementTypes.PERIOD) {
+                false
+            } else {
+                consumeToken(b, tokenType)
+                true
+            }
         }
     }
 }

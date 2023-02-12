@@ -63,14 +63,27 @@
     BINARY_SHIFT_R  = "bsr"
     ANDALSO         = "andalso"
     ORELSE          = "orelse"
+
+    // These tokens must never appear in final PSI, and are eliminated by ErlangFlexAdapter while lexing
+    PP_DEFINE       = "preprocessor -define"
+    PP_UNDEF        = "preprocessor -undef"
+    PP_IFDEF        = "preprocessor -ifdef"
+    PP_IF           = "preprocessor -if"
+    PP_ELIF         = "preprocessor -elif"
+    PP_IFNDEF       = "preprocessor -ifndef"
+    PP_ELSE         = "preprocessor -else"
+    PP_ENDIF        = "preprocessor -endif"
+    PP_INCLUDE      = "preprocessor -include"
+    PP_INCLUDELIB   = "preprocessor -include_lib"
   ]
 
-  psiClassPrefix="ErlAST"
+  psiClassPrefix="ErlPsi"
   psiImplClassSuffix="Impl"
   psiPackage="se.clau.ironclad.language.psi"
   psiImplPackage="se.clau.ironclad.language.psi.impl"
 
   elementTypeHolderClass="se.clau.ironclad.language.ErlangElementTypes"
+  //elementTypePrefix="TOK_"
   elementTypeClass="se.clau.ironclad.language.ErlangElementType"
   tokenTypeClass="se.clau.ironclad.language.ErlangTokenType"
 }
@@ -86,7 +99,10 @@ private escriptRoot ::= &<<isEscriptSyntaxFile>>
 //private formRecover ::= !(PLUS | MINUS | L_DOUBLE_ANGLE | QUESTION
 //    | L_SQUARE | L_CURLY | atom | BINARY_NOT | CHAR_LITERAL
 //    | float | INTEGER_LITERAL | NOT | STRING_LITERAL | VAR | HASH_SYMBOL | PERIOD)
-private form ::= functionDef | moduleAttr | !<<eofOrSpace>>
+private form ::= functionDef
+    | preprocessorDefine
+    | moduleAttr
+    | !<<eofOrSpace>>
 
 private literalExprWithPeriod ::= literalExpr PERIOD {pin=1}
 
@@ -109,3 +125,16 @@ functionDef ::= atom L_PAREN functionDefArgs R_PAREN R_ARROW functionDefBody PER
 private functionDefArgs ::= functionDefArg ( COMMA functionDefArg )*
 functionDefArg ::= VAR | atom // TODO: Proper match expression syntax
 private functionDefBody ::= expr ( COMMA expr )*
+
+//
+// Preprocessor
+//
+private preprocessorDirectiveEnd ::= R_PAREN PERIOD
+private preprocessorDirectiveRecover ::= !preprocessorDirectiveEnd
+private preprocessorMacroIdent ::= VAR | ATOM_NAME // lowercase or uppercase, all good
+preprocessorDefine ::= PP_DEFINE L_PAREN preprocessorMacroIdent
+    preprocessorDefineArgs? COMMA
+    preprocessorMacroBodyToken*
+    preprocessorDirectiveEnd {pin=2}
+preprocessorDefineArgs ::= L_PAREN VAR ( COMMA VAR )* R_PAREN
+private preprocessorMacroBodyToken ::= <<macroBodyAnyToken>> {pin=1 recoverWhile=preprocessorDirectiveRecover}
