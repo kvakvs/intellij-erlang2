@@ -15,11 +15,11 @@ public class ErlPsiVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitFunctionDef(@NotNull ErlPsiFunctionDef o) {
+  public void visitFnDef(@NotNull ErlPsiFnDef o) {
     visitPsiElement(o);
   }
 
-  public void visitFunctionDefArg(@NotNull ErlPsiFunctionDefArg o) {
+  public void visitFnDefArg(@NotNull ErlPsiFnDefArg o) {
     visitPsiElement(o);
   }
 
@@ -36,6 +36,10 @@ public class ErlPsiVisitor extends PsiElementVisitor {
   }
 
   public void visitPreprocessorDefineArgs(@NotNull ErlPsiPreprocessorDefineArgs o) {
+    visitPsiElement(o);
+  }
+
+  public void visitPreprocessorDirectiveEnd(@NotNull ErlPsiPreprocessorDirectiveEnd o) {
     visitPsiElement(o);
   }
 

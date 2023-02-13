@@ -10,4 +10,7 @@ public interface ErlPsiPreprocessorDefine extends PsiElement {
   @Nullable
   ErlPsiPreprocessorDefineArgs getPreprocessorDefineArgs();
 
+  @Nullable
+  ErlPsiPreprocessorDirectiveEnd getPreprocessorDirectiveEnd();
+
 }

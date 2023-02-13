@@ -11,26 +11,20 @@ import static se.clau.ironclad.language.ErlangElementTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import se.clau.ironclad.language.psi.*;
 
-public class ErlPsiFunctionDefArgImpl extends ASTWrapperPsiElement implements ErlPsiFunctionDefArg {
+public class ErlPsiPreprocessorDirectiveEndImpl extends ASTWrapperPsiElement implements ErlPsiPreprocessorDirectiveEnd {
 
-  public ErlPsiFunctionDefArgImpl(@NotNull ASTNode node) {
+  public ErlPsiPreprocessorDirectiveEndImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ErlPsiVisitor visitor) {
-    visitor.visitFunctionDefArg(this);
+    visitor.visitPreprocessorDirectiveEnd(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ErlPsiVisitor) accept((ErlPsiVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public ErlPsiAtom getAtom() {
-    return findChildByClass(ErlPsiAtom.class);
   }
 
 }

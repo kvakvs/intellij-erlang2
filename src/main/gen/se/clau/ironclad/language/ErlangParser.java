@@ -32,25 +32,25 @@ public class ErlangParser implements PsiParser, LightPsiParser {
   }
 
   static boolean parse_root_(IElementType t, PsiBuilder b, int l) {
-    return erlangFile(b, l + 1);
+    return ErlangFile(b, l + 1);
   }
 
   /* ********************************************************** */
   // ATOM_NAME | (SINGLE_QUOTE ATOM_NAME SINGLE_QUOTE)
-  public static boolean atom(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "atom")) return false;
+  public static boolean Atom(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Atom")) return false;
     if (!nextTokenIs(b, "<atom>", ATOM_NAME, SINGLE_QUOTE)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, ATOM, "<atom>");
     r = consumeToken(b, ATOM_NAME);
-    if (!r) r = atom_1(b, l + 1);
+    if (!r) r = Atom_1(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   // SINGLE_QUOTE ATOM_NAME SINGLE_QUOTE
-  private static boolean atom_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "atom_1")) return false;
+  private static boolean Atom_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Atom_1")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
     r = consumeTokens(b, 1, SINGLE_QUOTE, ATOM_NAME, SINGLE_QUOTE);
@@ -60,31 +60,31 @@ public class ErlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // erlangRoot | escriptRoot | termsRoot
-  static boolean erlangFile(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "erlangFile")) return false;
+  // ErlangFileBody | EscriptFileBody | TermsFileBody
+  static boolean ErlangFile(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ErlangFile")) return false;
     boolean r;
-    r = erlangRoot(b, l + 1);
-    if (!r) r = escriptRoot(b, l + 1);
-    if (!r) r = termsRoot(b, l + 1);
+    r = ErlangFileBody(b, l + 1);
+    if (!r) r = EscriptFileBody(b, l + 1);
+    if (!r) r = TermsFileBody(b, l + 1);
     return r;
   }
 
   /* ********************************************************** */
-  // &<<isErlangSyntaxFile>> form *
-  static boolean erlangRoot(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "erlangRoot")) return false;
+  // &<<isErlangSyntaxFile>> Form *
+  static boolean ErlangFileBody(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ErlangFileBody")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = erlangRoot_0(b, l + 1);
-    r = r && erlangRoot_1(b, l + 1);
+    r = ErlangFileBody_0(b, l + 1);
+    r = r && ErlangFileBody_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // &<<isErlangSyntaxFile>>
-  private static boolean erlangRoot_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "erlangRoot_0")) return false;
+  private static boolean ErlangFileBody_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ErlangFileBody_0")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _AND_);
     r = isErlangSyntaxFile(b, l + 1);
@@ -92,21 +92,34 @@ public class ErlangParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // form *
-  private static boolean erlangRoot_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "erlangRoot_1")) return false;
+  // Form *
+  private static boolean ErlangFileBody_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ErlangFileBody_1")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!form(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "erlangRoot_1", c)) break;
+      if (!Form(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "ErlangFileBody_1", c)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
+  // &<<isEscriptSyntaxFile>> Expr ( COMMA Expr ) * PERIOD
+  static boolean EscriptFileBody(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "EscriptFileBody")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = EscriptFileBody_0(b, l + 1);
+    r = r && Expr(b, l + 1);
+    r = r && EscriptFileBody_2(b, l + 1);
+    r = r && consumeToken(b, PERIOD);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
   // &<<isEscriptSyntaxFile>>
-  static boolean escriptRoot(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "escriptRoot")) return false;
+  private static boolean EscriptFileBody_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "EscriptFileBody_0")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _AND_);
     r = isEscriptSyntaxFile(b, l + 1);
@@ -114,165 +127,190 @@ public class ErlangParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  /* ********************************************************** */
-  // VAR | literalExpr
-  public static boolean expr(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "expr")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, EXPR, "<expr>");
-    r = consumeToken(b, VAR);
-    if (!r) r = literalExpr(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  // ( COMMA Expr ) *
+  private static boolean EscriptFileBody_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "EscriptFileBody_2")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!EscriptFileBody_2_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "EscriptFileBody_2", c)) break;
+    }
+    return true;
   }
 
-  /* ********************************************************** */
-  // functionDef
-  //     | preprocessorDefine
-  //     | moduleAttr
-  //     | !<<eofOrSpace>>
-  static boolean form(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "form")) return false;
+  // COMMA Expr
+  private static boolean EscriptFileBody_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "EscriptFileBody_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = functionDef(b, l + 1);
-    if (!r) r = preprocessorDefine(b, l + 1);
-    if (!r) r = moduleAttr(b, l + 1);
-    if (!r) r = form_3(b, l + 1);
+    r = consumeToken(b, COMMA);
+    r = r && Expr(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // !<<eofOrSpace>>
-  private static boolean form_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "form_3")) return false;
+  /* ********************************************************** */
+  // VAR | LiteralExpr
+  public static boolean Expr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Expr")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !eofOrSpace(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, EXPR, "<expr>");
+    r = consumeToken(b, VAR);
+    if (!r) r = LiteralExpr(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // atom L_PAREN functionDefArgs R_PAREN R_ARROW functionDefBody PERIOD
-  public static boolean functionDef(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionDef")) return false;
-    if (!nextTokenIs(b, "<function def>", ATOM_NAME, SINGLE_QUOTE)) return false;
+  // Atom L_PAREN FnDefArgs R_PAREN R_ARROW FnDefBody PERIOD
+  public static boolean FnDef(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnDef")) return false;
+    if (!nextTokenIs(b, "<fn def>", ATOM_NAME, SINGLE_QUOTE)) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, FUNCTION_DEF, "<function def>");
-    r = atom(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, FN_DEF, "<fn def>");
+    r = Atom(b, l + 1);
     r = r && consumeToken(b, L_PAREN);
-    r = r && functionDefArgs(b, l + 1);
+    r = r && FnDefArgs(b, l + 1);
     r = r && consumeTokens(b, 0, R_PAREN, R_ARROW);
-    r = r && functionDefBody(b, l + 1);
+    r = r && FnDefBody(b, l + 1);
     r = r && consumeToken(b, PERIOD);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // VAR | atom
-  public static boolean functionDefArg(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionDefArg")) return false;
+  // VAR | Atom
+  public static boolean FnDefArg(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnDefArg")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, FUNCTION_DEF_ARG, "<function def arg>");
+    Marker m = enter_section_(b, l, _NONE_, FN_DEF_ARG, "<fn def arg>");
     r = consumeToken(b, VAR);
-    if (!r) r = atom(b, l + 1);
+    if (!r) r = Atom(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // functionDefArg ( COMMA functionDefArg )*
-  static boolean functionDefArgs(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionDefArgs")) return false;
+  // FnDefArg ( COMMA FnDefArg )*
+  static boolean FnDefArgs(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnDefArgs")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = functionDefArg(b, l + 1);
-    r = r && functionDefArgs_1(b, l + 1);
+    r = FnDefArg(b, l + 1);
+    r = r && FnDefArgs_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // ( COMMA functionDefArg )*
-  private static boolean functionDefArgs_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionDefArgs_1")) return false;
+  // ( COMMA FnDefArg )*
+  private static boolean FnDefArgs_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnDefArgs_1")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!functionDefArgs_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "functionDefArgs_1", c)) break;
+      if (!FnDefArgs_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "FnDefArgs_1", c)) break;
     }
     return true;
   }
 
-  // COMMA functionDefArg
-  private static boolean functionDefArgs_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionDefArgs_1_0")) return false;
+  // COMMA FnDefArg
+  private static boolean FnDefArgs_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnDefArgs_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, COMMA);
-    r = r && functionDefArg(b, l + 1);
+    r = r && FnDefArg(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   /* ********************************************************** */
-  // expr ( COMMA expr )*
-  static boolean functionDefBody(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionDefBody")) return false;
+  // Expr ( COMMA Expr )*
+  static boolean FnDefBody(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnDefBody")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = expr(b, l + 1);
-    r = r && functionDefBody_1(b, l + 1);
+    r = Expr(b, l + 1);
+    r = r && FnDefBody_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // ( COMMA expr )*
-  private static boolean functionDefBody_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionDefBody_1")) return false;
+  // ( COMMA Expr )*
+  private static boolean FnDefBody_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnDefBody_1")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!functionDefBody_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "functionDefBody_1", c)) break;
+      if (!FnDefBody_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "FnDefBody_1", c)) break;
     }
     return true;
   }
 
-  // COMMA expr
-  private static boolean functionDefBody_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionDefBody_1_0")) return false;
+  // COMMA Expr
+  private static boolean FnDefBody_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "FnDefBody_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, COMMA);
-    r = r && expr(b, l + 1);
+    r = r && Expr(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   /* ********************************************************** */
-  // INTEGER_LITERAL | float | char | STRING_LITERAL | CHAR_LITERAL | atom
-  public static boolean literalExpr(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "literalExpr")) return false;
+  // FnDef
+  //     | PreprocessorDefine
+  //     | ModuleAttr
+  //     | !<<isEofOrSpace>>
+  static boolean Form(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Form")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = FnDef(b, l + 1);
+    if (!r) r = PreprocessorDefine(b, l + 1);
+    if (!r) r = ModuleAttr(b, l + 1);
+    if (!r) r = Form_3(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // !<<isEofOrSpace>>
+  private static boolean Form_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Form_3")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !isEofOrSpace(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // FLOAT_LITERAL | <<parseFloatLiteral>> | INTEGER_LITERAL
+  //     | DOLLAR_CHAR | STRING_LITERAL | CHAR_LITERAL
+  //     | Atom
+  public static boolean LiteralExpr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LiteralExpr")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LITERAL_EXPR, "<literal expr>");
-    r = consumeToken(b, INTEGER_LITERAL);
-    if (!r) r = consumeToken(b, FLOAT);
-    if (!r) r = consumeToken(b, CHAR);
+    r = consumeToken(b, FLOAT_LITERAL);
+    if (!r) r = parseFloatLiteral(b, l + 1);
+    if (!r) r = consumeToken(b, INTEGER_LITERAL);
+    if (!r) r = consumeToken(b, DOLLAR_CHAR);
     if (!r) r = consumeToken(b, STRING_LITERAL);
     if (!r) r = consumeToken(b, CHAR_LITERAL);
-    if (!r) r = atom(b, l + 1);
+    if (!r) r = Atom(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // literalExpr PERIOD
-  static boolean literalExprWithPeriod(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "literalExprWithPeriod")) return false;
+  // LiteralExpr PERIOD
+  static boolean LiteralExprWithPeriod(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LiteralExprWithPeriod")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
-    r = literalExpr(b, l + 1);
+    r = LiteralExpr(b, l + 1);
     p = r; // pin = 1
     r = r && consumeToken(b, PERIOD);
     exit_section_(b, l, m, r, p, null);
@@ -280,148 +318,148 @@ public class ErlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // MINUS atom ( L_PAREN moduleAttrContents R_PAREN )? PERIOD
-  public static boolean moduleAttr(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "moduleAttr")) return false;
+  // MINUS Atom ( L_PAREN ModuleAttrContents R_PAREN )? PERIOD
+  public static boolean ModuleAttr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ModuleAttr")) return false;
     if (!nextTokenIs(b, MINUS)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, MODULE_ATTR, null);
     r = consumeToken(b, MINUS);
-    r = r && atom(b, l + 1);
+    r = r && Atom(b, l + 1);
     p = r; // pin = 2
-    r = r && report_error_(b, moduleAttr_2(b, l + 1));
+    r = r && report_error_(b, ModuleAttr_2(b, l + 1));
     r = p && consumeToken(b, PERIOD) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
-  // ( L_PAREN moduleAttrContents R_PAREN )?
-  private static boolean moduleAttr_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "moduleAttr_2")) return false;
-    moduleAttr_2_0(b, l + 1);
+  // ( L_PAREN ModuleAttrContents R_PAREN )?
+  private static boolean ModuleAttr_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ModuleAttr_2")) return false;
+    ModuleAttr_2_0(b, l + 1);
     return true;
   }
 
-  // L_PAREN moduleAttrContents R_PAREN
-  private static boolean moduleAttr_2_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "moduleAttr_2_0")) return false;
+  // L_PAREN ModuleAttrContents R_PAREN
+  private static boolean ModuleAttr_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ModuleAttr_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, L_PAREN);
-    r = r && moduleAttrContents(b, l + 1);
+    r = r && ModuleAttrContents(b, l + 1);
     r = r && consumeToken(b, R_PAREN);
     exit_section_(b, m, null, r);
     return r;
   }
 
   /* ********************************************************** */
-  // literalExpr? ( COMMA literalExpr )*
-  static boolean moduleAttrContents(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "moduleAttrContents")) return false;
+  // LiteralExpr? ( COMMA LiteralExpr )*
+  static boolean ModuleAttrContents(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ModuleAttrContents")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = moduleAttrContents_0(b, l + 1);
-    r = r && moduleAttrContents_1(b, l + 1);
+    r = ModuleAttrContents_0(b, l + 1);
+    r = r && ModuleAttrContents_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // literalExpr?
-  private static boolean moduleAttrContents_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "moduleAttrContents_0")) return false;
-    literalExpr(b, l + 1);
+  // LiteralExpr?
+  private static boolean ModuleAttrContents_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ModuleAttrContents_0")) return false;
+    LiteralExpr(b, l + 1);
     return true;
   }
 
-  // ( COMMA literalExpr )*
-  private static boolean moduleAttrContents_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "moduleAttrContents_1")) return false;
+  // ( COMMA LiteralExpr )*
+  private static boolean ModuleAttrContents_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ModuleAttrContents_1")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!moduleAttrContents_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "moduleAttrContents_1", c)) break;
+      if (!ModuleAttrContents_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "ModuleAttrContents_1", c)) break;
     }
     return true;
   }
 
-  // COMMA literalExpr
-  private static boolean moduleAttrContents_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "moduleAttrContents_1_0")) return false;
+  // COMMA LiteralExpr
+  private static boolean ModuleAttrContents_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ModuleAttrContents_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, COMMA);
-    r = r && literalExpr(b, l + 1);
+    r = r && LiteralExpr(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   /* ********************************************************** */
   // PP_DEFINE L_PAREN preprocessorMacroIdent
-  //     preprocessorDefineArgs? COMMA
-  //     preprocessorMacroBodyToken*
-  //     preprocessorDirectiveEnd
-  public static boolean preprocessorDefine(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "preprocessorDefine")) return false;
+  //     PreprocessorDefineArgs? COMMA
+  //     PreprocessorMacroBodyToken*
+  //     PreprocessorDirectiveEnd
+  public static boolean PreprocessorDefine(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PreprocessorDefine")) return false;
     if (!nextTokenIs(b, PP_DEFINE)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, PREPROCESSOR_DEFINE, null);
-    r = consumeTokens(b, 2, PP_DEFINE, L_PAREN);
-    p = r; // pin = 2
-    r = r && report_error_(b, preprocessorMacroIdent(b, l + 1));
-    r = p && report_error_(b, preprocessorDefine_3(b, l + 1)) && r;
+    r = consumeTokens(b, 0, PP_DEFINE, L_PAREN);
+    r = r && preprocessorMacroIdent(b, l + 1);
+    p = r; // pin = 3
+    r = r && report_error_(b, PreprocessorDefine_3(b, l + 1));
     r = p && report_error_(b, consumeToken(b, COMMA)) && r;
-    r = p && report_error_(b, preprocessorDefine_5(b, l + 1)) && r;
-    r = p && preprocessorDirectiveEnd(b, l + 1) && r;
+    r = p && report_error_(b, PreprocessorDefine_5(b, l + 1)) && r;
+    r = p && PreprocessorDirectiveEnd(b, l + 1) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
-  // preprocessorDefineArgs?
-  private static boolean preprocessorDefine_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "preprocessorDefine_3")) return false;
-    preprocessorDefineArgs(b, l + 1);
+  // PreprocessorDefineArgs?
+  private static boolean PreprocessorDefine_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PreprocessorDefine_3")) return false;
+    PreprocessorDefineArgs(b, l + 1);
     return true;
   }
 
-  // preprocessorMacroBodyToken*
-  private static boolean preprocessorDefine_5(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "preprocessorDefine_5")) return false;
+  // PreprocessorMacroBodyToken*
+  private static boolean PreprocessorDefine_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PreprocessorDefine_5")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!preprocessorMacroBodyToken(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "preprocessorDefine_5", c)) break;
+      if (!PreprocessorMacroBodyToken(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "PreprocessorDefine_5", c)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
   // L_PAREN VAR ( COMMA VAR )* R_PAREN
-  public static boolean preprocessorDefineArgs(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "preprocessorDefineArgs")) return false;
+  public static boolean PreprocessorDefineArgs(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PreprocessorDefineArgs")) return false;
     if (!nextTokenIs(b, L_PAREN)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokens(b, 0, L_PAREN, VAR);
-    r = r && preprocessorDefineArgs_2(b, l + 1);
+    r = r && PreprocessorDefineArgs_2(b, l + 1);
     r = r && consumeToken(b, R_PAREN);
     exit_section_(b, m, PREPROCESSOR_DEFINE_ARGS, r);
     return r;
   }
 
   // ( COMMA VAR )*
-  private static boolean preprocessorDefineArgs_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "preprocessorDefineArgs_2")) return false;
+  private static boolean PreprocessorDefineArgs_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PreprocessorDefineArgs_2")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!preprocessorDefineArgs_2_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "preprocessorDefineArgs_2", c)) break;
+      if (!PreprocessorDefineArgs_2_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "PreprocessorDefineArgs_2", c)) break;
     }
     return true;
   }
 
   // COMMA VAR
-  private static boolean preprocessorDefineArgs_2_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "preprocessorDefineArgs_2_0")) return false;
+  private static boolean PreprocessorDefineArgs_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PreprocessorDefineArgs_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokens(b, 0, COMMA, VAR);
@@ -431,36 +469,69 @@ public class ErlangParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // R_PAREN PERIOD
-  static boolean preprocessorDirectiveEnd(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "preprocessorDirectiveEnd")) return false;
+  public static boolean PreprocessorDirectiveEnd(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PreprocessorDirectiveEnd")) return false;
     if (!nextTokenIs(b, R_PAREN)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokens(b, 0, R_PAREN, PERIOD);
-    exit_section_(b, m, null, r);
+    exit_section_(b, m, PREPROCESSOR_DIRECTIVE_END, r);
     return r;
   }
 
   /* ********************************************************** */
-  // !preprocessorDirectiveEnd
-  static boolean preprocessorDirectiveRecover(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "preprocessorDirectiveRecover")) return false;
+  // !PreprocessorDirectiveEnd
+  static boolean PreprocessorDirectiveRecover(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PreprocessorDirectiveRecover")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NOT_);
-    r = !preprocessorDirectiveEnd(b, l + 1);
+    r = !PreprocessorDirectiveEnd(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
   // <<macroBodyAnyToken>>
-  static boolean preprocessorMacroBodyToken(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "preprocessorMacroBodyToken")) return false;
+  static boolean PreprocessorMacroBodyToken(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PreprocessorMacroBodyToken")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_);
     r = macroBodyAnyToken(b, l + 1);
-    exit_section_(b, l, m, r, false, ErlangParser::preprocessorDirectiveRecover);
+    exit_section_(b, l, m, r, false, ErlangParser::PreprocessorDirectiveRecover);
     return r;
+  }
+
+  /* ********************************************************** */
+  // &<<isTermsSyntaxFile>> LiteralExprWithPeriod *
+  static boolean TermsFileBody(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "TermsFileBody")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = TermsFileBody_0(b, l + 1);
+    r = r && TermsFileBody_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // &<<isTermsSyntaxFile>>
+  private static boolean TermsFileBody_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "TermsFileBody_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _AND_);
+    r = isTermsSyntaxFile(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // LiteralExprWithPeriod *
+  private static boolean TermsFileBody_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "TermsFileBody_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!LiteralExprWithPeriod(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "TermsFileBody_1", c)) break;
+    }
+    return true;
   }
 
   /* ********************************************************** */
@@ -472,39 +543,6 @@ public class ErlangParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, VAR);
     if (!r) r = consumeToken(b, ATOM_NAME);
     return r;
-  }
-
-  /* ********************************************************** */
-  // &<<isTermsSyntaxFile>> literalExprWithPeriod *
-  static boolean termsRoot(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "termsRoot")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = termsRoot_0(b, l + 1);
-    r = r && termsRoot_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // &<<isTermsSyntaxFile>>
-  private static boolean termsRoot_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "termsRoot_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _AND_);
-    r = isTermsSyntaxFile(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // literalExprWithPeriod *
-  private static boolean termsRoot_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "termsRoot_1")) return false;
-    while (true) {
-      int c = current_position_(b);
-      if (!literalExprWithPeriod(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "termsRoot_1", c)) break;
-    }
-    return true;
   }
 
 }

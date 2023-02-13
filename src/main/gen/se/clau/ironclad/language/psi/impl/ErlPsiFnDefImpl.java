@@ -11,14 +11,14 @@ import static se.clau.ironclad.language.ErlangElementTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import se.clau.ironclad.language.psi.*;
 
-public class ErlPsiFunctionDefImpl extends ASTWrapperPsiElement implements ErlPsiFunctionDef {
+public class ErlPsiFnDefImpl extends ASTWrapperPsiElement implements ErlPsiFnDef {
 
-  public ErlPsiFunctionDefImpl(@NotNull ASTNode node) {
+  public ErlPsiFnDefImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ErlPsiVisitor visitor) {
-    visitor.visitFunctionDef(this);
+    visitor.visitFnDef(this);
   }
 
   @Override
@@ -41,8 +41,8 @@ public class ErlPsiFunctionDefImpl extends ASTWrapperPsiElement implements ErlPs
 
   @Override
   @NotNull
-  public List<ErlPsiFunctionDefArg> getFunctionDefArgList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ErlPsiFunctionDefArg.class);
+  public List<ErlPsiFnDefArg> getFnDefArgList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ErlPsiFnDefArg.class);
   }
 
 }

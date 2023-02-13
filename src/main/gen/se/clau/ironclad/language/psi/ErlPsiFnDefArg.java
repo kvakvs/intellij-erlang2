@@ -5,15 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ErlPsiFunctionDef extends PsiElement {
+public interface ErlPsiFnDefArg extends PsiElement {
 
-  @NotNull
+  @Nullable
   ErlPsiAtom getAtom();
-
-  @NotNull
-  List<ErlPsiExpr> getExprList();
-
-  @NotNull
-  List<ErlPsiFunctionDefArg> getFunctionDefArgList();
 
 }

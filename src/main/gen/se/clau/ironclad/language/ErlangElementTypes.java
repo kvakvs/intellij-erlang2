@@ -10,12 +10,13 @@ public interface ErlangElementTypes {
 
   IElementType ATOM = new ErlangElementType("ATOM");
   IElementType EXPR = new ErlangElementType("EXPR");
-  IElementType FUNCTION_DEF = new ErlangElementType("FUNCTION_DEF");
-  IElementType FUNCTION_DEF_ARG = new ErlangElementType("FUNCTION_DEF_ARG");
+  IElementType FN_DEF = new ErlangElementType("FN_DEF");
+  IElementType FN_DEF_ARG = new ErlangElementType("FN_DEF_ARG");
   IElementType LITERAL_EXPR = new ErlangElementType("LITERAL_EXPR");
   IElementType MODULE_ATTR = new ErlangElementType("MODULE_ATTR");
   IElementType PREPROCESSOR_DEFINE = new ErlangElementType("PREPROCESSOR_DEFINE");
   IElementType PREPROCESSOR_DEFINE_ARGS = new ErlangElementType("PREPROCESSOR_DEFINE_ARGS");
+  IElementType PREPROCESSOR_DIRECTIVE_END = new ErlangElementType("PREPROCESSOR_DIRECTIVE_END");
 
   IElementType AND = new ErlangTokenType("and");
   IElementType ANDALSO = new ErlangTokenType("andalso");
@@ -27,16 +28,16 @@ public interface ErlangElementTypes {
   IElementType BINARY_SHIFT_L = new ErlangTokenType("bsl");
   IElementType BINARY_SHIFT_R = new ErlangTokenType("bsr");
   IElementType BINARY_XOR = new ErlangTokenType("bxor");
-  IElementType CHAR = new ErlangTokenType("char");
   IElementType CHAR_LITERAL = new ErlangTokenType("CHAR_LITERAL");
   IElementType COLON = new ErlangTokenType(":");
   IElementType COLON_COLON = new ErlangTokenType("::");
   IElementType COMMA = new ErlangTokenType(",");
+  IElementType DOLLAR_CHAR = new ErlangTokenType("$-prefixed character");
   IElementType DOUBLE_BAR = new ErlangTokenType("||");
   IElementType EQ = new ErlangTokenType("=");
   IElementType EQEQ = new ErlangTokenType("==");
-  IElementType FLOAT = new ErlangTokenType("float");
   IElementType FLOAT_DIV = new ErlangTokenType("/");
+  IElementType FLOAT_LITERAL = new ErlangTokenType("FLOAT_LITERAL");
   IElementType GT = new ErlangTokenType(">");
   IElementType GTEQ = new ErlangTokenType(">=");
   IElementType HASH_SYMBOL = new ErlangTokenType("#");
@@ -82,7 +83,7 @@ public interface ErlangElementTypes {
   IElementType R_SQUARE = new ErlangTokenType("]");
   IElementType SEMICOLON = new ErlangTokenType(";");
   IElementType SINGLE_QUOTE = new ErlangTokenType("'");
-  IElementType STRING_LITERAL = new ErlangTokenType("STRING_LITERAL");
+  IElementType STRING_LITERAL = new ErlangTokenType("integer literal");
   IElementType STRONG_EQ = new ErlangTokenType("=:=");
   IElementType STRONG_NEQ = new ErlangTokenType("=/=");
   IElementType VAR = new ErlangTokenType("VAR");
@@ -98,11 +99,11 @@ public interface ErlangElementTypes {
       else if (type == EXPR) {
         return new ErlPsiExprImpl(node);
       }
-      else if (type == FUNCTION_DEF) {
-        return new ErlPsiFunctionDefImpl(node);
+      else if (type == FN_DEF) {
+        return new ErlPsiFnDefImpl(node);
       }
-      else if (type == FUNCTION_DEF_ARG) {
-        return new ErlPsiFunctionDefArgImpl(node);
+      else if (type == FN_DEF_ARG) {
+        return new ErlPsiFnDefArgImpl(node);
       }
       else if (type == LITERAL_EXPR) {
         return new ErlPsiLiteralExprImpl(node);
@@ -115,6 +116,9 @@ public interface ErlangElementTypes {
       }
       else if (type == PREPROCESSOR_DEFINE_ARGS) {
         return new ErlPsiPreprocessorDefineArgsImpl(node);
+      }
+      else if (type == PREPROCESSOR_DIRECTIVE_END) {
+        return new ErlPsiPreprocessorDirectiveEndImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

@@ -65,6 +65,7 @@
     ORELSE          = "orelse"
 
     // These tokens must never appear in final PSI, and are eliminated by ErlangFlexAdapter while lexing
+    DOLLAR_CHAR     = "$-prefixed character"
     PP_DEFINE       = "preprocessor -define"
     PP_UNDEF        = "preprocessor -undef"
     PP_IFDEF        = "preprocessor -ifdef"
@@ -75,6 +76,8 @@
     PP_ENDIF        = "preprocessor -endif"
     PP_INCLUDE      = "preprocessor -include"
     PP_INCLUDELIB   = "preprocessor -include_lib"
+    INTEGER_LITERAL = "integer literal"
+    STRING_LITERAL  = "integer literal"
   ]
 
   psiClassPrefix="ErlPsi"
@@ -88,53 +91,62 @@
   tokenTypeClass="se.clau.ironclad.language.ErlangTokenType"
 }
 
-erlangFile ::= erlangRoot | escriptRoot | termsRoot
+ErlangFile ::= ErlangFileBody | EscriptFileBody | TermsFileBody
 
-private termsRoot ::= &<<isTermsSyntaxFile>> literalExprWithPeriod *
-private erlangRoot ::= &<<isErlangSyntaxFile>> form *
-private escriptRoot ::= &<<isEscriptSyntaxFile>>
+private TermsFileBody ::= &<<isTermsSyntaxFile>> LiteralExprWithPeriod *
+private ErlangFileBody ::= &<<isErlangSyntaxFile>> Form *
+private EscriptFileBody ::= &<<isEscriptSyntaxFile>> Expr ( COMMA Expr ) * PERIOD
 
 // An Erlang module form is an attribute, or a function definition
 //private formWithPeriod ::= form PERIOD {recoverWhile=formRecover pin=1}
 //private formRecover ::= !(PLUS | MINUS | L_DOUBLE_ANGLE | QUESTION
 //    | L_SQUARE | L_CURLY | atom | BINARY_NOT | CHAR_LITERAL
 //    | float | INTEGER_LITERAL | NOT | STRING_LITERAL | VAR | HASH_SYMBOL | PERIOD)
-private form ::= functionDef
-    | preprocessorDefine
-    | moduleAttr
-    | !<<eofOrSpace>>
+private Form ::= FnDef
+    | PreprocessorDefine
+    | ModuleAttr
+    | !<<isEofOrSpace>>
 
-private literalExprWithPeriod ::= literalExpr PERIOD {pin=1}
+private LiteralExprWithPeriod ::= LiteralExpr PERIOD {pin=1}
 
 //
 // General Erlang syntax constructs, shared with different file types
 //
-literalExpr ::= INTEGER_LITERAL | float | char | STRING_LITERAL | CHAR_LITERAL | atom
+// Literal expression contains only static parts, no variables or function calls
+LiteralExpr ::= FLOAT_LITERAL | <<parseFloatLiteral>> | INTEGER_LITERAL
+    | DOLLAR_CHAR | STRING_LITERAL | CHAR_LITERAL
+    | Atom
 
 // Expr same as literal expr but allows function calls and variables
-expr ::= VAR | literalExpr
-atom ::= ATOM_NAME | (SINGLE_QUOTE ATOM_NAME SINGLE_QUOTE) {pin(".*") = 1}
+Expr ::= VAR | LiteralExpr
+Atom ::= ATOM_NAME | (SINGLE_QUOTE ATOM_NAME SINGLE_QUOTE) {pin(".*") = 1}
 
 //
 // Erlang Module constructs
 //
-moduleAttr ::= MINUS atom ( L_PAREN moduleAttrContents R_PAREN )? PERIOD {pin=2}
-private moduleAttrContents ::= literalExpr? ( COMMA literalExpr )*
+ModuleAttr ::= MINUS Atom ( L_PAREN ModuleAttrContents R_PAREN )? PERIOD {pin=2}
+private ModuleAttrContents ::= LiteralExpr? ( COMMA LiteralExpr )*
 
-functionDef ::= atom L_PAREN functionDefArgs R_PAREN R_ARROW functionDefBody PERIOD
-private functionDefArgs ::= functionDefArg ( COMMA functionDefArg )*
-functionDefArg ::= VAR | atom // TODO: Proper match expression syntax
-private functionDefBody ::= expr ( COMMA expr )*
+FnDef ::= Atom L_PAREN FnDefArgs R_PAREN R_ARROW FnDefBody PERIOD
+private FnDefArgs ::= FnDefArg ( COMMA FnDefArg )*
+FnDefArg ::= VAR | Atom // TODO: Proper match expression syntax
+private FnDefBody ::= Expr ( COMMA Expr )*
 
 //
 // Preprocessor
 //
-private preprocessorDirectiveEnd ::= R_PAREN PERIOD
-private preprocessorDirectiveRecover ::= !preprocessorDirectiveEnd
+PreprocessorDirectiveEnd ::= R_PAREN PERIOD
 private preprocessorMacroIdent ::= VAR | ATOM_NAME // lowercase or uppercase, all good
-preprocessorDefine ::= PP_DEFINE L_PAREN preprocessorMacroIdent
-    preprocessorDefineArgs? COMMA
-    preprocessorMacroBodyToken*
-    preprocessorDirectiveEnd {pin=2}
-preprocessorDefineArgs ::= L_PAREN VAR ( COMMA VAR )* R_PAREN
-private preprocessorMacroBodyToken ::= <<macroBodyAnyToken>> {pin=1 recoverWhile=preprocessorDirectiveRecover}
+// Matches a "-define" "(" MACROIDENT ( ARGS "," ... )<optional> "," <tokens> ")."
+//external PreprocessorDefine ::= handlePreprocessorDefine PreprocessorDefine_
+PreprocessorDefine ::= PP_DEFINE L_PAREN preprocessorMacroIdent
+    PreprocessorDefineArgs? COMMA
+    PreprocessorMacroBodyToken*
+    PreprocessorDirectiveEnd {pin=3}
+PreprocessorDefineArgs ::= L_PAREN VAR ( COMMA VAR )* R_PAREN
+private PreprocessorDirectiveRecover ::= !PreprocessorDirectiveEnd
+// Matches one any token other than ")."
+private PreprocessorMacroBodyToken ::= <<macroBodyAnyToken>> {
+    pin=1
+    recoverWhile=PreprocessorDirectiveRecover
+}

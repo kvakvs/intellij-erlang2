@@ -57,27 +57,20 @@ EXPONENT      = [eE] [-+]? [0-9_]+
 
 // Note: this rule also consumes *float* literals in scientific form like `1e3`, `3e-4`.
 // `FLOAT_LITERAL` is never produced by the lexer.
-// See `RustParserUtil.parseFloatLiteral` where `INTEGER_LITERAL` turns into `FLOAT_LITERAL` during parsing.
-INT_LITERAL = ( {DEC_LITERAL}
-              | {HEX_LITERAL}
-              | {OCT_LITERAL}
-              | {BIN_LITERAL} ) {EXPONENT}?
-
+// See `ErlangParserUtil.parseFloatLiteral` where `INT_LITERAL` turns into `FLOAT_LITERAL` during parsing.
+INT_LITERAL = ( {DEC_LITERAL} | {BASED_LITERAL} ) {EXPONENT}?
 DEC_LITERAL = [0-9] [0-9_]*
-HEX_LITERAL = "0x" [a-fA-F0-9_]*
-OCT_LITERAL = "0o" [0-7_]*
-BIN_LITERAL = "0b" [01_]*
+// Integer literals with radix (base) specified, like 16#0ffff or 36#a123z, radix is 2..36
+BASED_LITERAL = [0-3]? [0-9] "#" [0-9a-zA-Z] [0-9a-zA-Z_]*
 
-
-//CHAR_LITERAL   = ( \' ( [^\\\'\r\n] | \\[^\r\n] | "\\x" [a-fA-F0-9]+ | "\\u{" [a-fA-F0-9][a-fA-F0-9_]* "}"? )? ( \' \\ )? )
-//               | ( \' [\p{xidcontinue}]* \'  )
-//STRING_LITERAL = \" ( [^\\\"] | \\[^] )* ( \" \\ )?
-
-/* Without the \\\" at the start the lexer won't find it, for unknown reasons */
+// Without the \\\" at the start the lexer won't find it, for unknown reasons
 ESC = "\\" ( [^] )
-CHAR = {ESC} | [^\'\"\\]
-STRING_BAD1 = \" ({CHAR} | \') *
+STRING_CHAR = {ESC} | [^\'\"\\]
+STRING_BAD1 = \" ({STRING_CHAR} | \') *
 STRING_LITERAL = {STRING_BAD1} \"
+
+DOLLAR_ESCAPED_CHAR = \\ .
+DOLLAR_CHAR = "$" ( {DOLLAR_ESCAPED_CHAR} | . )
 
 ALPHA_UPPERCASE = [A-Z]
 ALPHA_LOWERCASE = [a-z]
@@ -175,6 +168,7 @@ VARIABLE = ( "_" | {ALPHA_UPPERCASE} ) {VARIABLE_NAME_CHAR} *
     "%" .*                         { return COMMENT; }
 
     {VARIABLE}                     { return VAR; }
+    {DOLLAR_CHAR}                  { return DOLLAR_CHAR; }
 
     /* LITERALS */
 
