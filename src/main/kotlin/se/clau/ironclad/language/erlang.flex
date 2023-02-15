@@ -80,6 +80,9 @@ OCTAL_ESCAPE = \\ [0-7]{1,3}
 CONTROL_NAME = [@A-Z\[\\\]\^_] /* this is the octal range \100 - \137 */
 CONTROL_ESCAPE = \\ \^ {CONTROL_NAME}
 
+// A pasted ?MACRO
+PREPROCESSOR_PASTE = "?" [A-Za-z_] [A-Za-z_0-9]*
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Identifier: Variable and Atom
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,6 +104,7 @@ VARIABLE = ( "_" | {ALPHA_UPPERCASE} ) {VARIABLE_NAME_CHAR} *
 %%
 <YYINITIAL> {
     "#" / "!"[^\[]                 { if (getTokenStart() == 0) yybegin(IN_SHEBANG_STATE); else return HASH_SYMBOL; }
+    {PREPROCESSOR_PASTE}           { return PP_PASTE; }
 
     // Preprocessor
     // These do not return a token, resolve in place

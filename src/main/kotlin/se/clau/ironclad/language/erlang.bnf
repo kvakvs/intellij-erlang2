@@ -66,6 +66,7 @@
 
     // These tokens must never appear in final PSI, and are eliminated by ErlangFlexAdapter while lexing
     DOLLAR_CHAR     = "$-prefixed character"
+    PP_PASTE        = "preprocessor pasted macro"
     PP_DEFINE       = "preprocessor -define"
     PP_UNDEF        = "preprocessor -undef"
     PP_IFDEF        = "preprocessor -ifdef"

@@ -72,6 +72,7 @@ public interface ErlangElementTypes {
   IElementType PP_IFNDEF = new ErlangTokenType("preprocessor -ifndef");
   IElementType PP_INCLUDE = new ErlangTokenType("preprocessor -include");
   IElementType PP_INCLUDELIB = new ErlangTokenType("preprocessor -include_lib");
+  IElementType PP_PASTE = new ErlangTokenType("preprocessor pasted macro");
   IElementType PP_UNDEF = new ErlangTokenType("preprocessor -undef");
   IElementType QUESTION = new ErlangTokenType("?");
   IElementType REMAINDER = new ErlangTokenType("rem");

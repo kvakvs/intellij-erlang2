@@ -61,6 +61,7 @@ allprojects {
                 freeCompilerArgs = listOf("-Xjvm-default=all")
             }
         }
+
     } // end tasks
     sourceSets {
         main {
@@ -77,6 +78,9 @@ allprojects {
         sourceSets {
             main {
                 kotlin.srcDirs("src/main/kotlin")
+            }
+            test {
+                resources.srcDirs("src/test/resources")
             }
         }
     }
@@ -109,6 +113,19 @@ project(":") {
             jvmArgs("-Dide.show.tips.on.startup.default.value=false")
             // Uncomment to enable localization testing mode
             // jvmArgs("-Didea.l10n=true")
+        }
+        test {
+            testLogging {
+                showStandardStreams = prop("showStandardStreams").toBoolean()
+                afterSuite(
+                    KotlinClosure2<TestDescriptor, TestResult, Unit>({ desc, result ->
+                        if (desc.parent == null) { // will match the outermost suite
+                            val output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)"
+                            println(output)
+                        }
+                    })
+                )
+            }
         }
     }
 }

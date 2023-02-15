@@ -1,13 +1,31 @@
 package se.clau.ironclad.language
 
-import com.intellij.lang.ASTNode
+import com.intellij.psi.tree.IElementType
 
 /**
  * Stores preprocessor visible scope, and is populated by parsing -define/-undef directives.
- * Lives inside `ErlangParser`, via being defined in `ErlangParserUtilBase`
+ * Lives and is populated inside `ErlangLexer`
  */
 class Preprocessor {
-    data class Identifier(val name: String, val params: List<String>)
+    data class MacroArity(val name: String, val arity: Int)
+    data class MacroDefinition(val vars: List<String>, val tokens: Collection<IElementType>)
 
-    val definitions = mutableMapOf<Identifier, List<ASTNode>>()
+    val macros = mutableMapOf<MacroArity, MacroDefinition>()
+
+    fun define(name: String, vars: List<String>, tokens: Collection<IElementType>) {
+        macros[MacroArity(name, vars.size)] = MacroDefinition(vars, tokens)
+    }
+
+    fun findMacro(id: MacroArity): MacroDefinition? = if (macros.containsKey(id)) macros[id] else null
+
+    // Predefined symbols
+    // FILE = filename: string
+    // FUNCTION_NAME
+    // FUNCTION_ARITY
+    // LINE: integer
+    // MODULE, MODULE_STRING
+    // BASE_MODULE, BASE_MODULE_STRING
+    // MACHINE = Machine:atom
+    // Machine = true
+    // OTP_RELEASE (from erlang:system_info)
 }
