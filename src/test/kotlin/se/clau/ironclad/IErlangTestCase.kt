@@ -1,5 +1,5 @@
 package se.clau.ironclad
 
-interface ErlangTestCase : TestCase {
+interface IErlangTestCase : ITestCase {
     override val testFileExtension: String get() = "erl"
 }

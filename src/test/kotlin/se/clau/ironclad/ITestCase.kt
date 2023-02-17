@@ -14,7 +14,7 @@ package se.clau.ironclad
 import java.nio.file.Path
 import java.nio.file.Paths
 
-interface TestCase {
+interface ITestCase {
     val testFileExtension: String
     fun getTestDataPath(): String
     fun getTestName(lowercaseFirstLetter: Boolean): String
@@ -31,8 +31,8 @@ interface TestCase {
     }
 }
 
-fun TestCase.pathToSourceTestFile(): Path =
-    Paths.get("${TestCase.testResourcesPath}/${getTestDataPath()}/${getTestName(true)}.$testFileExtension")
+fun ITestCase.pathToSourceTestFile(): Path =
+    Paths.get("${ITestCase.testResourcesPath}/${getTestDataPath()}/${getTestName(true)}.$testFileExtension")
 
-fun TestCase.pathToGoldTestFile(): Path =
-    Paths.get("${TestCase.testResourcesPath}/${getTestDataPath()}/${getTestName(true)}.txt")
+fun ITestCase.pathToGoldTestFile(): Path =
+    Paths.get("${ITestCase.testResourcesPath}/${getTestDataPath()}/${getTestName(true)}.txt")

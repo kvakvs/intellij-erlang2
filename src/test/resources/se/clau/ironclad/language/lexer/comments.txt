@@ -1,0 +1,7 @@
+<MODULE_DOC_COMMENT> ('%%% Module')
+WHITE_SPACE ('\n\n')
+<COMMENT> (% small comment')
+WHITE_SPACE ('\n\n')
+<FUNCTION_DOC_COMMENT> ('%% Function')
+WHITE_SPACE ('\n')
+<FUNCTION_DOC_COMMENT> ('%%')

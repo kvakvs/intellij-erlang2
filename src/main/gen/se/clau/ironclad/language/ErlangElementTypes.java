@@ -84,7 +84,7 @@ public interface ErlangElementTypes {
   IElementType R_SQUARE = new ErlangTokenType("]");
   IElementType SEMICOLON = new ErlangTokenType(";");
   IElementType SINGLE_QUOTE = new ErlangTokenType("'");
-  IElementType STRING_LITERAL = new ErlangTokenType("integer literal");
+  IElementType STRING_LITERAL = new ErlangTokenType("STRING_LITERAL");
   IElementType STRONG_EQ = new ErlangTokenType("=:=");
   IElementType STRONG_NEQ = new ErlangTokenType("=/=");
   IElementType VAR = new ErlangTokenType("VAR");

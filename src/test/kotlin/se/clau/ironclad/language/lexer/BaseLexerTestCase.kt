@@ -10,17 +10,17 @@ import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.testFramework.LexerTestCase
 import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.annotations.NonNls
-import se.clau.ironclad.TestCase
+import se.clau.ironclad.ITestCase
 import se.clau.ironclad.pathToGoldTestFile
 import se.clau.ironclad.pathToSourceTestFile
 import java.io.IOException
 
-abstract class LexerTestCaseBase : LexerTestCase(), TestCase {
+abstract class BaseLexerTestCase : LexerTestCase(), ITestCase {
     override fun getDirPath(): String = throw UnsupportedOperationException()
 
     override fun getTestName(lowercaseFirstLetter: Boolean): String {
         val camelCase = super.getTestName(lowercaseFirstLetter)
-        return TestCase.camelOrWordsToSnake(camelCase)
+        return ITestCase.camelOrWordsToSnake(camelCase)
     }
 
     // NOTE(matkad): this is basically a copy-paste of doFileTest.

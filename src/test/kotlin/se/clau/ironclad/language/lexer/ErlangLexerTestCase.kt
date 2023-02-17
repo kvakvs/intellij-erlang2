@@ -11,6 +11,6 @@
 
 package se.clau.ironclad.language.lexer
 
-import se.clau.ironclad.ErlangTestCase
+import se.clau.ironclad.IErlangTestCase
 
-abstract class LexingTestCaseBase : LexerTestCaseBase(), ErlangTestCase
+abstract class ErlangLexerTestCase : BaseLexerTestCase(), IErlangTestCase
