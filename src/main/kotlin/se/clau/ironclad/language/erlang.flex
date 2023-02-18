@@ -15,16 +15,26 @@ import com.intellij.psi.tree.IElementType;
 %}
 
 %{}
-  /**
+    /**
     * Dedicated storage for starting position of some previously successful
     * match
     */
-  private int zzPostponedMarkedPos = -1;
+    private int zzSavedStartRead = -1;
 
-  /**
+    /**
     * Dedicated nested-comment level counter
     */
-  private int zzNestedCommentLevel = 0;
+    private int zzNestedCommentLevel = 0;
+
+    IElementType imbueCharacterLiteral() {
+        zzStartRead += 1;
+        return CHAR_LITERAL;
+    }
+    IElementType imbueShebang() {
+        zzStartRead = zzSavedStartRead + 2; // skip #!
+        zzSavedStartRead = -1;
+        return SHEBANG_LINE;
+    }
 %}
 
 %public
@@ -69,8 +79,10 @@ STRING_CHAR = {ESC} | [^\'\"\\]
 STRING_BAD1 = \" ({STRING_CHAR} | \') *
 STRING_LITERAL = {STRING_BAD1} \"
 
-DOLLAR_ESCAPED_CHAR = \\ .
-DOLLAR_CHAR = "$" ( {DOLLAR_ESCAPED_CHAR} | . )
+// $<whitespace> and $<newline> are allowed combinations
+DOLLAR_ESCAPED_CHAR = \$ \\ .
+DOLLAR_WHITESPACE = \$ \s
+DOLLAR_CHAR = \$ .
 
 ALPHA_UPPERCASE = [A-Z]
 ALPHA_LOWERCASE = [a-z]
@@ -103,11 +115,17 @@ VARIABLE = ( "_" | {ALPHA_UPPERCASE} ) {VARIABLE_NAME_CHAR} *
 
 %%
 <YYINITIAL> {
-    "#" / "!"[^\[]                 { if (getTokenStart() == 0) yybegin(IN_SHEBANG_STATE); else return HASH_SYMBOL; }
+    "#" / "!"[^\[]                 {
+        if (getTokenStart() == 0) {
+            zzSavedStartRead = zzStartRead;
+            yybegin(IN_SHEBANG_STATE);
+        } else return HASH_SYMBOL;
+    }
     {PREPROCESSOR_PASTE}           { return PP_PASTE; }
 
     // Preprocessor
-    // These do not return a token, resolve in place
+    // These can not be found in the Parser.
+    // Resolved and executed in ErlangLexer modifying the token stream.
     "-define"           { return PP_DEFINE; }
     "-undef"            { return PP_UNDEF; }
     "-ifdef"            { return PP_IFDEF; }
@@ -167,12 +185,14 @@ VARIABLE = ( "_" | {ALPHA_UPPERCASE} ) {VARIABLE_NAME_CHAR} *
     "andalso"                      { return ANDALSO; }
     "orelse"                       { return ORELSE; }
 
-    "%%%" .*                       { return MODULE_DOC_COMMENT; }
-    "%%" .*                        { return FUNCTION_DOC_COMMENT; }
-    "%" .*                         { return COMMENT; }
+    "%%%" .*                       { return MODULE_DOC_COMMENT; } // defined in FamilyParserDefinition
+    "%%" .*                        { return FUNCTION_DOC_COMMENT; } // defined in FamilyParserDefinition
+    "%" .*                         { return COMMENT; } // defined in FamilyParserDefinition
 
     {VARIABLE}                     { return VAR; }
-    {DOLLAR_CHAR}                  { return DOLLAR_CHAR; }
+    {DOLLAR_WHITESPACE}            { return imbueCharacterLiteral(); }
+    {DOLLAR_ESCAPED_CHAR}          { return imbueCharacterLiteral(); }
+    {DOLLAR_CHAR}                  { return imbueCharacterLiteral(); }
 
     /* LITERALS */
 
@@ -191,7 +211,8 @@ VARIABLE = ( "_" | {ALPHA_UPPERCASE} ) {VARIABLE_NAME_CHAR} *
 }
 
 <IN_SHEBANG_STATE> {
-    [\r\n]  { yypushback(1); yybegin(YYINITIAL); return SHEBANG_LINE;}
+    [\r\n]  { yypushback(1); yybegin(YYINITIAL); return imbueShebang();}
+    [\r]    { yypushback(1); yybegin(YYINITIAL); return imbueShebang();}
     [^]     {}
     <<EOF>> { yybegin(YYINITIAL); return SHEBANG_LINE;}
 }

@@ -14,22 +14,21 @@ package se.clau.ironclad.language.lexer
 import com.intellij.lexer.Lexer
 import se.clau.ironclad.language.ErlangLexer
 
-class ErlangLexerTest : ErlangLexerTestCase() {
+class ErlangLexerTest1 : ErlangLexerTestCase() {
     override fun getTestDataPath(): String = "se/clau/ironclad/language/lexer"
 
     override fun createLexer(): Lexer = ErlangLexer()
 
     fun `test tokenizer`() = doTest()
     fun `test comments`() = doTest()
-//    fun `test comments`() = doTest()
-//    fun `test shebang`() = doTest()
+    fun `test shebang`() = doTest()
 //    fun `test shebang 1`() = doTest()
 //    fun `test shebang 2`() = doTest()
 //    fun `test shebang 3`() = doTest()
 //    fun `test shebang 4`() = doTest()
 //    fun `test numbers`() = doTest()
-//    fun `test identifiers`() = doTest()
-//    fun `test char literals`() = doTest()
+    fun `test identifiers`() = doTest()
+    fun `test character literals`() = doTest()
 //    fun `test string literals`() = doTest()
 //    fun `test byte literals`() = doTest()
 //    fun `test invalid escape`() = doTest()

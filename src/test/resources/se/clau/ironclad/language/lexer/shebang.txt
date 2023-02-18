@@ -1,0 +1,3 @@
+ErlangToken "#!" ('/usr/bin/erlang')
+WHITE_SPACE ('\n')
+ErlangToken "ATOM_NAME" ('hello')

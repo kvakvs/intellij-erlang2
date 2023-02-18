@@ -39,13 +39,13 @@ abstract class FamilyParserDefinition(private val constructFile: (FileViewProvid
         val SHEBANG_LINE: IElementType = ErlangTokenType("#!")
 
         @JvmField
-        val COMMENT: IElementType = ErlangTokenType("%")
+        val COMMENT: IElementType = ErlangTokenType("COMMENT")
 
         @JvmField
-        val FUNCTION_DOC_COMMENT: IElementType = ErlangTokenType("%%")
+        val FUNCTION_DOC_COMMENT: IElementType = ErlangTokenType("FUNCTION_DOC_COMMENT")
 
         @JvmField
-        val MODULE_DOC_COMMENT: IElementType = ErlangTokenType("%%%")
+        val MODULE_DOC_COMMENT: IElementType = ErlangTokenType("MODULE_DOC_COMMENT")
 
         val ALL_COMMENT_TOKENS = tokenSetOf(COMMENT, FUNCTION_DOC_COMMENT, MODULE_DOC_COMMENT)
         val ALL_STRING_LITERALS = tokenSetOf(STRING_LITERAL)
