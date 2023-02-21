@@ -34,4 +34,5 @@ class ErlangLexerTest1 : ErlangLexerTestCase() {
 //    fun `test invalid escape`() = doTest()
 //    fun `test doc comment merging`() = doTest()
 //    fun `test keywords`() = doTest()
+    fun `test preprocessor`() = doTest()
 }

@@ -3,14 +3,12 @@ package se.clau.ironclad.language
 import com.intellij.lexer.FlexAdapter
 import com.intellij.lexer.LexerBase
 import com.intellij.psi.tree.IElementType
+import se.clau.ironclad.language.preprocessor.*
+import se.clau.ironclad.parsercombinators.IParserInput
 
 //class ErlangLexer : ErlangFlexAdapter()
 class ErlangLexer : LexerBase() {
     val wrappedLexer = FlexAdapter(GeneratedErlangLexer())
-
-    // Stores lexer state for one step (step is done earlier on start()) and allows to replay the lexer
-    // from the outputCache
-    data class CachedLexerStep(val element: IElementType?, val start: Int, val end: Int, val state: Int)
 
     // Entire output from the wrapped lexer is stored in the cache, we preprocess its contents,
     // interpreting the defines, undefs and conditions, and then we feed from it
@@ -18,23 +16,43 @@ class ErlangLexer : LexerBase() {
 
     var readIndex = 0
 
+    class InputImpl(val input: ArrayList<CachedLexerStep>, var position: Int = 0) : IParserInput {
+        override fun have(): Boolean = position < input.size
+        override fun take(): CachedLexerStep? = if (!have()) null else input[position++]
+        override fun pushBack(n: Int) {
+            position -= n
+        }
+
+        override fun peek(offset: Int): CachedLexerStep = input.elementAtOrElse(position + offset) { BLANK; }
+    }
+
     override fun start(buffer: CharSequence, startOffset: Int, endOffset: Int, initialState: Int) {
         wrappedLexer.start(buffer, startOffset, endOffset, initialState)
-        readIndex = 0;
+        readIndex = 0
 
         var tokenType: IElementType?
+        val rawTokens = ArrayList<CachedLexerStep>()
 
+        // Parse entire input and store all tokens and positions for later replay
         while (wrappedLexer.tokenType.also { tokenType = it } != null) {
-            outputCache.add(
+            rawTokens.add(
                 CachedLexerStep(
-                    tokenType,
-                    (wrappedLexer.flex as GeneratedErlangLexer).tokenStart,
-                    wrappedLexer.tokenEnd,
-                    wrappedLexer.state
+                    element = tokenType,
+                    start = (wrappedLexer.flex as GeneratedErlangLexer).tokenStart,
+                    end = wrappedLexer.tokenEnd,
+                    state = wrappedLexer.state
                 )
             )
             wrappedLexer.advance()
         }
+
+        // Try find known sequences of preprocessor directive tokens and execute their effect
+        outputCache.clear()
+        Preprocessor.preprocess(
+            input = InputImpl(rawTokens),
+            output = outputCache,
+            PreprocessorScope()
+        )
     }
 
     override fun getState(): Int {
@@ -66,5 +84,9 @@ class ErlangLexer : LexerBase() {
 
     override fun getBufferEnd(): Int {
         return wrappedLexer.bufferEnd
+    }
+
+    companion object {
+        private val BLANK = CachedLexerStep(null, 0, 0, 0)
     }
 }
