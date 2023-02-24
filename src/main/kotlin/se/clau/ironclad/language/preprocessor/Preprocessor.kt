@@ -1,6 +1,5 @@
 package se.clau.ironclad.language.preprocessor
 
-import com.intellij.psi.tree.IElementType
 import se.clau.ironclad.language.ErlangElementTypes
 import se.clau.ironclad.parsercombinators.IParserInput
 
@@ -11,7 +10,7 @@ import se.clau.ironclad.parsercombinators.IParserInput
 object Preprocessor {
     fun preprocess(
         input: IParserInput,
-        output: MutableList<CachedLexerStep>,
+        output: MutableList<TokenWithLexerState>,
         preprocessorScope: PreprocessorScope
     ) {
         // Go through every input token and try match -<directive> <optional body> .
@@ -23,7 +22,12 @@ object Preprocessor {
             if (directive != null) {
                 directive.execute(input, output, preprocessorScope)
             } else {
-                output.add(input.take()!! as CachedLexerStep)
+                val next = input.take()
+                if (next != null) {
+                    output.add(next as TokenWithLexerState)
+                } else {
+                    break
+                }
             }
         }
     }
@@ -32,31 +36,14 @@ object Preprocessor {
         input: IParserInput,
         preprocessorScope: PreprocessorScope
     ): IPreprocessorDirective? {
-        val nextTok = input.take() as CachedLexerStep
+        val nextTok = input.take() as TokenWithLexerState
         return when (nextTok.element) {
             ErlangElementTypes.PP_DEFINE -> {
-                val result = DefineDirective.parser()(input, preprocessorScope)
-                return result.result
+                val result = ParsedDefineDirective.parser(input, preprocessorScope)
+                return result.value
             }
+
             else -> null // not detected one
         }
     }
-
-//    private fun tryDefine(
-//        input: IPreprocessorInput,
-//        output: IPreprocessorOutput,
-//        preprocessorScope: PreprocessorScope
-//    ): IPreprocessorDirective? {
-//        expectToken(input, 1, ErlangElementTypes.L_PAREN)
-//    }
-
-    /**
-     * Throw an exception if `offset`-th token is not `tok`
-     */
-//    private fun expectToken(input: IPreprocessorInput, offset: Int, tok: IElementType) {
-//        val actual = input.peek(offset)
-//        if (actual.element != tok) {
-//            throw PreprocessorError("Token $tok was expected, but found $actual")
-//        }
-//    }
 }

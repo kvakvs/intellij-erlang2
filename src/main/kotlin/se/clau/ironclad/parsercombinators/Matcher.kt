@@ -8,13 +8,13 @@ object Matcher {
      */
     fun token(
         tok: IElementType
-    ): Parser<Unit> {
-        return fun(input: IParserInput, state: IParserState?): ParserResult<Unit> {
+    ): Parser<IElementType> {
+        return fun(input: IParserInput, state: IParserState?): ParserResult<IElementType> {
             val actual = input.take()
             if (actual != null && actual.sameElementType(tok)) {
-                return ParserResult(input, Unit, EmptyState)
+                return ParserResult(input.clone(), tok, EmptyState)
             }
-            throw ParseCombinatorError("Expected token ${tok} not found, instead found ${actual}")
+            throw ParserCombinatorError("Expected token ${tok} not found, instead found ${actual}")
         }
     }
 
@@ -28,10 +28,10 @@ object Matcher {
             for (tok in tokens) {
                 val actual = input.take()
                 if (actual == null || !actual.sameElementType(tok)) {
-                    throw ParseCombinatorError("Expected token ${tok} not found, instead found ${actual}")
+                    throw ParserCombinatorError("Expected token ${tok} not found, instead found ${actual}")
                 }
             }
-            return ParserResult(input, Unit, EmptyState)
+            return ParserResult(input.clone(), Unit, EmptyState)
         }
     }
 

@@ -23,6 +23,12 @@ interface IParserInput {
     fun pushBack(n: Int)
 
     /**
+     * New nested calls create clones of input, and in case of a roll back, an older clone
+     * is waiting there in the call stack.
+     */
+    fun clone(): IParserInput
+
+    /**
      * Look ahead, cannot return null, returns a blank token if EOF reached
      */
     fun peek(offset: Int): IParserInputItem
@@ -30,7 +36,7 @@ interface IParserInput {
 
 data class ParserResult<ResultType>(
     val input: IParserInput,
-    val result: ResultType,
+    val value: ResultType,
     val state: IParserState
 )
 
@@ -47,4 +53,14 @@ interface IParserOutput<T> {
     fun write(lexStep: T)
 }
 
-class ParseCombinatorError(msg: String) : Exception(msg)
+class ParserCombinatorError(msg: String) : Exception(msg) {
+    val contextStack = mutableListOf<String>()
+    fun addContext(ctx: String): Throwable {
+        this.contextStack.add(ctx)
+        return this
+    }
+
+    override fun toString(): String {
+        return contextStack.joinToString("\n")
+    }
+}

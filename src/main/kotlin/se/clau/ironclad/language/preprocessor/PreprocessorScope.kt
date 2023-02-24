@@ -1,6 +1,5 @@
 package se.clau.ironclad.language.preprocessor
 
-import com.intellij.psi.tree.IElementType
 import se.clau.ironclad.common.NameArity
 import se.clau.ironclad.parsercombinators.IParserState
 
@@ -16,7 +15,12 @@ import se.clau.ironclad.parsercombinators.IParserState
 // OTP_RELEASE (from erlang:system_info)
 
 class PreprocessorScope: IParserState {
-    data class PreprocessorDefinition(val vars: List<String>, val tokens: Collection<IElementType>)
+    data class PreprocessorDefinition(val vars: Collection<String>, val tokens: Collection<TokenWithLexerState>)
 
     private val definitions = mutableMapOf<NameArity, PreprocessorDefinition>()
+
+    fun addDefinition(name: String, vars: Collection<String>, tokens: Collection<TokenWithLexerState>) {
+        val key = NameArity(name, vars.size)
+        definitions[key] = PreprocessorDefinition(vars, tokens)
+    }
 }

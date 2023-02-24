@@ -10,7 +10,7 @@ object Multi {
      */
     fun <ResultType> separated0(
         elementParser: Parser<ResultType>,
-        separatorParser: Parser<Unit>
+        separatorParser: Parser<*>
     ): Parser<List<ResultType>> {
         return fun(
             input: IParserInput,
@@ -22,23 +22,23 @@ object Multi {
             try {
                 val first = elementParser(input, state)
                 state1 = first.state
-                output.add(first.result)
+                output.add(first.value)
 
                 while (input.have()) {
                     try {
-                        val separator = separatorParser(first.input, EmptyState)
-                        val next = elementParser(separator.input, state1)
-                        output.add(next.result)
+                        val separator = separatorParser(first.input.clone(), EmptyState)
+                        val next = elementParser(separator.input.clone(), state1)
+                        output.add(next.value)
                         state1 = next.state
-                    } catch (_: ParseCombinatorError) {
+                    } catch (_: ParserCombinatorError) {
                         // error means no more could be consumed
                     }
                 }
-            } catch (_: ParseCombinatorError) {
+            } catch (_: ParserCombinatorError) {
                 // error means first element was not consumed so we have zero elements
             }
 
-            return ParserResult(input, output, state1)
+            return ParserResult(input.clone(), output, state1)
         }
     }
 }
